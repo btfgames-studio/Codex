@@ -344,6 +344,7 @@ button.ref{padding:0 .2em;white-space:normal}
 .ytbig{width:100%;height:100%;object-fit:cover;display:flex;align-items:center;justify-content:center;font-size:3rem;color:var(--muted)}
 .ytplay{position:absolute;inset:auto auto 50% 50%;transform:translate(-50%,50%);width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
 .qs-0{background:var(--surface2)}.qs-1{background:var(--accent-soft)}.qs-2{background:color-mix(in srgb,var(--ok) 25%,transparent)}.qs-3{background:color-mix(in srgb,var(--danger) 25%,transparent)}
+.hidebar{margin:-.3rem 0 .5rem;font-size:.85rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -928,9 +929,9 @@ function derive(b){
 
   const eq={};for(const [s,id] of Object.entries(b.equip||{})){const it=ITEMS.get(id);if(it)eq[s]=it;}
   const items=Object.values(eq);
-  for(const it of items){const set=it.bonus&&it.bonus.set;if(set)for(const k in set)if(sc[k]!=null)sc[k]=Math.max(sc[k],+set[k]);}
+  for(const it of items){const set=effB(it).set;if(set)for(const k in set)if(sc[k]!=null)sc[k]=Math.max(sc[k],+set[k]);}
   const m=Object.fromEntries(ABK.map(k=>[k,mod(sc[k])]));
-  const sumB=key=>items.reduce((s,it)=>s+(+((it.bonus||{})[key])||0),0);
+  const sumB=key=>items.reduce((s,it)=>s+(+(effB(it)[key])||0),0);const sumM=(key,sub)=>items.reduce((s,it)=>s+(+((effB(it)[key]||{})[sub])||0),0);ABK.forEach(k=>{sc[k]+=sumM('abil',k);m[k]=mod(sc[k]);});
 
   // maîtrises
   const armP=new Set(),wpnP=new Set();
@@ -969,13 +970,13 @@ function derive(b){
   const first=classes[0]?CLASSES[classes[0].cls]:null;
   const saveP=new Set(first?first.saves:[]);
   feats.forEach(f=>{if(f&&f.id==='resilient'&&f.p1)saveP.add(f.p1);});
-  const saves=Object.fromEntries(ABK.map(k=>[k,m[k]+(saveP.has(k)?pb:0)+sumB('save')]));
+  const saves=Object.fromEntries(ABK.map(k=>[k,m[k]+(saveP.has(k)?pb:0)+sumB('save')+sumM('saveAb',k)]));
 
   const casters=[];
   classes.forEach(c=>{const C=CLASSES[c.cls];const ab=C.cast||(C.subCast&&C.subCast[c.sub]);if(ab&&!casters.find(x=>x.cls===c.cls))casters.push({cls:c.cls,n:C.n,ab,dc:8+pb+m[ab]+sumB('dc'),atk:pb+m[ab]+sumB('spellatk')});});
 
   const bgSk=new Set((BACKGROUNDS[b.bg]||{sk:[]}).sk);
-  const skills=SKILLS.map(([id,n,ab])=>{const prof=bgSk.has(id)||!!(b.skills||{})[id];const ex=prof&&!!(b.expert||{})[id];return {id,n,ab,bg:bgSk.has(id),prof,ex,v:m[ab]+(prof?pb:0)+(ex?pb:0)};});
+  const skills=SKILLS.map(([id,n,ab])=>{const prof=bgSk.has(id)||!!(b.skills||{})[id];const ex=prof&&!!(b.expert||{})[id];return {id,n,ab,bg:bgSk.has(id),prof,ex,v:m[ab]+(prof?pb:0)+(ex?pb:0)+sumM('skills',id)};});
 
   let extraAtk=1;const fl=clsLvl('guerrier');if(fl>=11)extraAtk=3;else if(fl>=5)extraAtk=2;
   ['barbare','paladin','rodeur','moine'].forEach(c=>{if(clsLvl(c)>=5)extraAtk=Math.max(extraAtk,2);});
@@ -1078,7 +1079,7 @@ function renderGloss(){
     <button class="primary" data-act="item-new">Ajouter un objet</button>
     <button data-act="data-io">Importer depuis bg3.wiki</button>
   </div>
-  <p class="small muted" id="g-count"></p>
+  ${hideBar()}<p class="small muted" id="g-count"></p>
   <div class="tablewrap"><table><thead><tr><th>Nom</th><th>Catégorie</th><th>Rareté</th><th>Acte</th><th>Où le trouver</th><th>Prix</th></tr></thead><tbody id="g-body"></tbody></table></div>
   <p class="small muted" style="margin-top:.8rem">Les objets marqués « à vérifier » sont des exemples saisis de mémoire : compare-les avec leur fiche sur bg3.wiki avant de t’y fier. Les données de bg3.wiki sont sous licence CC BY-NC-SA 4.0.</p>`;
   renderGlossBody();
@@ -1122,13 +1123,15 @@ function itemDetail(id){
   if(i.w){rows.push(['Dégâts',weaponLine(i.w)],['Type',`${i.w.kind==='martial'?'Arme de guerre':'Arme courante'}${i.w.ranged?', à distance':', corps à corps'} (${esc(WGROUPS[i.w.group]||i.w.group)})`]);if((i.w.props||[]).length)rows.push(['Propriétés',i.w.props.map(p=>PROPS[p]||p).join(', ')]);}
   if(i.a)rows.push([i.a.type==='shield'?'Bonus de CA':'Classe d’armure',i.a.type==='shield'?'+'+i.a.base:`${i.a.base??'à renseigner'} ${i.a.type==='light'?'+ DEX':i.a.type==='medium'?'+ DEX (max 2)':''}`],['Type d’armure',ARMT[i.a.type]+(i.a.stealth?', désavantage en Discrétion':'')]);
   if(i.heal)rows.push(['Soins',esc(i.heal)]);
-  const bl=bonusLine(i.bonus);if(bl)rows.push(['Effets',bl]);
+  const bl=bonusLine(effB(i));if(bl)rows.push(['Effets',bl+(i.auto?' <span class="small muted">(lus automatiquement dans la description, à vérifier)</span>':'')]);
   openDlg(`<span style="${rc(i.rarity)}"><span class="dot"></span></span>${esc(i.name)}`,`
     ${imgZone('item:'+i.id)}
     ${i.en&&i.en!==i.name?`<p class="muted">${esc(i.en)}</p>`:''}
     ${i.demo?'<p class="small" style="color:var(--gold)">Fiche d’exemple saisie de mémoire : vérifie les chiffres sur bg3.wiki.</p>':''}
     <dl class="kv">${rows.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
-    ${i.desc?`<p>${esc(i.desc)}</p>`:''}
+    ${i.legacy?`<p class="small" style="color:var(--danger)">⚠ Selon le wiki, cet objet est ${esc(LEGACY_FR[i.legacy]||i.legacy)}.</p>`:''}
+    ${i.where&&i.where!==i.source?`<p class="small"><b>Où le trouver :</b> ${esc(i.where)}</p>`:''}
+    ${i.desc?`<p class="pre">${esc(i.desc)}</p>`:''}
     ${i.spell&&SPELLS.get(i.spell)?`<p>Sort lancé : <button class="small" data-act="spell-open" data-id="${esc(i.spell)}">${esc(SPELLS.get(i.spell).name)}</button></p>`:''}
     ${i.custom?`<fieldset><legend>Où et quand (à compléter au fil du jeu)</legend><div class="formgrid">
       <label>Acte<select data-qi="act" data-id="${esc(i.id)}">${opt('','À préciser',i.act??'')}${[0,1,2,3].map(x=>opt(x,actLabel(x),i.act??'')).join('')}</select></label>
@@ -1140,6 +1143,7 @@ function itemDetail(id){
       ${slots.length?`<span class="small muted">sur « ${esc(b.name)} »</span>`:''}
     </div>
     <div class="row" style="margin-top:.8rem">
+      <button data-act="item-hide" data-id="${esc(i.id)}">${S.prefs.hidden.includes(i.id)?'Ne plus masquer':'Masquer cet objet'}</button>
       ${i.en?`<a class="btn" href="${wikiUrl(i.en)}" target="_blank" rel="noopener">Ouvrir sur bg3.wiki</a>`:''}
       ${i.custom?`<button data-act="item-edit" data-id="${esc(i.id)}">Modifier</button><button class="danger" data-act="item-del" data-id="${esc(i.id)}">Supprimer</button>`:`<button data-act="item-dup" data-id="${esc(i.id)}">Copier pour modifier</button>`}
     </div>`);
@@ -1450,7 +1454,7 @@ function statsHTML(b,D){
 
 function slotPicker(slot){
   const b=curBuild();const curId=(b.equip||{})[slot];
-  const list=[...ITEMS.values()].filter(i=>slotsFor(i).includes(slot)).sort((x,y)=>(RAR[y.rarity]||{o:0}).o-(RAR[x.rarity]||{o:0}).o||x.name.localeCompare(y.name,'fr'));
+  const list=[...ITEMS.values()].filter(i=>slotsFor(i).includes(slot)&&!isHiddenItem(i)).sort((x,y)=>(RAR[y.rarity]||{o:0}).o-(RAR[x.rarity]||{o:0}).o||x.name.localeCompare(y.name,'fr'));
   openDlg(`Équiper : ${SLOTS[slot].toLowerCase()}`,`
     <div class="row"><input type="search" id="pk-q" placeholder="Filtrer…" style="flex:1" aria-label="Filtrer les objets">${curId?`<button data-act="unequip" data-slot="${slot}">Retirer</button>`:''}</div>
     <div id="pk-list">${list.map(i=>`<button class="pickitem" data-act="equip" data-id="${esc(i.id)}" data-slot="${slot}" data-q="${esc((i.name+' '+(i.en||'')).toLowerCase())}" style="${rc(i.rarity)}"${i.id===curId?' aria-current="true"':''}><span>${thumb('item:'+i.id)||'<span class="dot"></span>'}${esc(i.name)}${i.id===curId?' <span class="muted">(équipé)</span>':''}</span><span class="small muted">${i.w?weaponLine(i.w):i.a?(i.a.type==='shield'?'+':'CA ')+(i.a.base??'?'):esc(bonusLine(i.bonus))}</span></button>`).join('')||'<p class="muted">Aucun objet pour cet emplacement. Ajoute-en depuis le glossaire.</p>'}</div>`);
@@ -2272,13 +2276,13 @@ function renderItems(kind){
     <button class="primary" data-act="item-new">Ajouter</button>
     <button data-act="data-io">Importer depuis bg3.wiki</button>
   </div>
-  <p class="small muted" id="g-count"></p>
+  ${hideBar()}<p class="small muted" id="g-count"></p>
   <div class="tablewrap"><table><thead><tr><th>Nom</th><th>${isW?'Famille':'Catégorie'}</th><th>${isW?'Dégâts':'Effet'}</th><th>Rareté</th><th>Acte</th><th>Où le trouver</th><th>Prix</th></tr></thead><tbody id="g-body"></tbody></table></div>`;
   renderGlossBody();
 }
 function glossFiltered(){
   const q=G.q.trim().toLowerCase();const isW=G.kind==='armes';
-  let list=[...ITEMS.values()].filter(i=>(isW?i.cat==='Arme':i.cat!=='Arme')&&
+  let list=[...ITEMS.values()].filter(i=>!isHiddenItem(i)&&(isW?i.cat==='Arme':i.cat!=='Arme')&&
     (!G.cat||i.cat===G.cat)&&(!G.grp||(i.w&&i.w.group===G.grp))&&(!G.rng||(i.w&&(G.rng==='r')===!!i.w.ranged))&&
     (G.act===''||(G.act==='?'?(i.act==null||i.act===''):(i.act!=null&&i.act!==''&&String(+i.act||0)===G.act)))&&(!G.rar||i.rarity===G.rar)&&(!G.src||i.source===G.src)&&
     (!q||[i.name,i.en,i.desc,i.source,i.cat].some(x=>String(x||'').toLowerCase().includes(q))));
@@ -3435,6 +3439,164 @@ async function applyBackup(o,merge){
 }
 ACT['bk-merge']=()=>{if(BK)applyBackup(BK,true);BK=null;};
 ACT['bk-replace']=()=>{if(!BK)return;if(!confirm('Vraiment tout effacer sur cette page avant de restaurer ?'))return;applyBackup(BK,false);BK=null;};
+
+/* =========================================================
+   VERSION 9 : nettoyage du glossaire et effets automatiques
+   ========================================================= */
+S.prefs={hideCamp:true,hideDup:true,hidden:[],showHidden:false};
+Store.keys.push('prefs');
+{const p=Store.pack.bind(Store),u=Store.unpack.bind(Store);
+ Store.pack=k=>k==='prefs'?{...S.prefs}:p(k);
+ Store.unpack=(k,d)=>{if(k==='prefs'){if(d)S.prefs={...S.prefs,...d,hidden:Array.isArray(d.hidden)?d.hidden:[]};return;}u(k,d);};}
+
+function cleanWikiHTML(t){
+  let x=String(t||'').replace(/&NoBreak;/g,'');x=decEnt(x).replace(/[\u202f\u00a0]/g,' ');
+  x=x.replace(/<\/(dt|dd|li|p|div|tr)>/gi,'\n').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'');
+  x=x.replace(/\((?:link=[^|)\n]*\|)?[^|)\n]*px\|alt=([^|)\n]*)\|class=bg3wiki-icon[^)\n]*\)/g,'($1)');
+  x=x.replace(/(?:\S*?px\|)?link=[^|\n]*\|(?:[^|\n]*px\|)?alt=(?:\[\[)?[^|\n]*?\|class=bg3wiki-icon(?: nowrap)?(?:\]\])?\s?/g,'');
+  x=x.replace(/\S*?px\|link=[^|\n]*\|alt=(?:\[\[)?[^|\n]*?\|class=bg3wiki-icon(?:\]\])?/g,'');
+  x=x.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g,'$1').replace(/'''?/g,'').replace(/\{\{|\}\}/g,'');
+  x=x.replace(/\(\s*(?:link=)?\s*\)/g,'').replace(/[ \t]+/g,' ').replace(/ *\n */g,'\n').replace(/\n{3,}/g,'\n\n').replace(/^\* ?/gm,'• ').trim();
+  return x;
+}
+const ABIL_RE='(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)';
+const SKILL_EN={'Athletics':'athletics','Acrobatics':'acrobatics','Sleight of Hand':'sleight','Stealth':'stealth','Arcana':'arcana','History':'history','Investigation':'investigation','Nature':'nature','Religion':'religion','Animal Handling':'animal','Insight':'insight','Medicine':'medicine','Perception':'perception','Survival':'survival','Deception':'deception','Intimidation':'intimidation','Performance':'performance','Persuasion':'persuasion'};
+const ARMOR_FAMILY=[['studded leather',12,'light'],['padded',11,'light'],['leather',11,'light'],['hide',12,'medium'],['chain shirt',13,'medium'],['scale mail',14,'medium'],['breastplate',14,'medium'],['half plate',15,'medium'],['half-plate',15,'medium'],['ring mail',14,'heavy'],['chain mail',16,'heavy'],['splint',17,'heavy'],['plate',18,'heavy']];
+function parseEffects(it){
+  const t=String(it.desc||'');const A={};let hit=false;
+  const add=(k,v)=>{A[k]=(A[k]||0)+v;hit=true;};const addM=(k,s,v)=>{A[k]=A[k]||{};A[k][s]=(A[k][s]||0)+v;hit=true;};
+  for(const m of t.matchAll(/(?:(\w+)\s+)?Saving Throws?\s*\+(\d+)/gi)){const ab0=m[1]&&ABIL_EN[m[1].toLowerCase()];if(!ab0){add('save',+m[2]);continue;}const ab=ABIL_EN[m[1].toLowerCase()];if(ab)addM('saveAb',ab,+m[2]);else add('save',+m[2]);}
+  for(const m of t.matchAll(/(?:Armour|Armor) Class\s*\+(\d+)|\+(\d+)\s*(?:bonus )?to (?:Armour|Armor) Class/gi))add('ac',+(m[1]||m[2]));
+  for(const m of t.matchAll(/Initiative\s*\+(\d+)|\+(\d+)\s*(?:bonus )?to Initiative/gi))add('init',+(m[1]||m[2]));
+  for(const m of t.matchAll(/Spell Save DC\s*\+(\d+)/gi))add('dc',+m[1]);
+  for(const m of t.matchAll(/Spell Attack Rolls?\s*\+(\d+)/gi))add('spellatk',+m[1]);
+  for(const m of t.matchAll(/(^|[^l] )Attack Rolls?\s*\+(\d+)/gim))add('att',+m[2]);
+  for(const m of t.matchAll(new RegExp(ABIL_RE+'\\s+score to (\\d+)','gi'))){A.set=A.set||{};A.set[ABIL_EN[m[1].toLowerCase()]]=+m[2];hit=true;}
+  for(const m of t.matchAll(new RegExp(ABIL_RE+'\\s*\\+(\\d+)(?!\\s*Saving)','g')))addM('abil',ABIL_EN[m[1].toLowerCase()],+m[2]);
+  for(const [en,id] of Object.entries(SKILL_EN))for(const m of t.matchAll(new RegExp(en+'\\s*(?:Checks?\\s*)?\\+(\\d+)','g')))addM('skills',id,+m[1]);
+  for(const m of t.matchAll(/Critical Hit[^.\n]*?reduced by (\d+)/gi))add('crit',+m[1]);
+  const res=new Set();for(const m of t.matchAll(/Resistance to ([A-Za-z ,]+?)(?:damage|\.|\n|$)/gi)){for(const [en,fr] of Object.entries(DTYPE_EN))if(m[1].toLowerCase().includes(en))res.add(fr);}
+  if(res.size){A.res=[...res];hit=true;}
+  if(it.a&&it.a.type!=='shield'&&!it.a.acTotal){const ench=+((it.name.match(/\+(\d)\b/)||[])[1]||(t.match(/Enchantement \+(\d)/)||[])[1]||0);if(ench)add('ac',ench);}
+  return hit?A:null;
+}
+function effB(it){const b=it.bonus||{},a=it.auto||{};const o={...a,...b};for(const k of ['set','saveAb','skills','abil'])if(a[k]||b[k])o[k]={...(a[k]||{}),...(b[k]||{})};return o;}
+const isCamp=i=>/camp clothing|camp shoes|underwear/i.test(i.wtype||'');
+function dupHidden(){
+  const seen=new Map(),hide=new Set();
+  for(const i of S.customItems){const sig=[i.name,i.cat,i.rarity,JSON.stringify(i.w||null),JSON.stringify(i.a||null),i.desc].join('|');if(seen.has(sig))hide.add(i.id);else seen.set(sig,i.id);}
+  return hide;
+}
+let DUP=new Set();
+function isHiddenItem(i){if(S.prefs.showHidden)return false;if(S.prefs.hidden.includes(i.id))return true;if(S.prefs.hideCamp&&isCamp(i))return true;if(S.prefs.hideDup&&DUP.has(i.id))return true;return false;}
+function rebuildItems(){
+  let ch=fixEnt(S.customItems,['name','en','desc','source','wtype']);
+  for(const i of S.customItems){
+    if(i.wiki&&/bg3wiki|<span|<dl|&NoBreak;/.test(i.desc||'')){i.desc=cleanWikiHTML(i.desc);ch++;}
+    if(i.a&&i.a.type!=='shield'&&i.a.base==null){const n=String(i.en||i.name).toLowerCase();const f=ARMOR_FAMILY.find(([k])=>n.includes(k));if(f){i.a.base=f[1];i.a.type=f[2];ch++;}}
+    if(i.wiki){const a=parseEffects(i);const s1=JSON.stringify(a),s0=JSON.stringify(i.auto||null);if(s1!==s0){if(a)i.auto=a;else delete i.auto;ch++;}}
+  }
+  if(ch&&Store.loaded.has('items'))Store.touch('items');
+  if(fixEnt(S.spells,['name','en','desc','classes','school'])&&Store.loaded.has('spells'))Store.touch('spells');
+  if(fixEnt(S.npcs,['name','desc','wikiPage','place'])&&Store.loaded.has('npcs'))Store.touch('npcs');
+  const ens=new Set(S.customItems.map(c=>String(c.en||'').toLowerCase()).filter(Boolean));
+  ITEMS=new Map(SEED.filter(i=>!ens.has(String(i.en).toLowerCase())).map(i=>[i.id,i]));
+  for(const c of S.customItems)ITEMS.set(c.id,{...c,custom:true});
+  const sens=new Set(S.spells.map(c=>String(c.en||'').toLowerCase()).filter(Boolean));
+  SPELLS=new Map(SPELL_SEED.filter(x=>!sens.has(String(x.en).toLowerCase())).map(x=>[x.id,x]));
+  for(const c of S.spells)SPELLS.set(c.id,{...c,custom:true});
+  DUP=dupHidden();EC=null;
+}
+function bonusLine(bn){
+  if(!bn)return'';const p=[];const L={ac:'CA',att:'Jets d’attaque',dmg:'Dégâts',init:'Initiative',save:'Tous les jets de sauvegarde',hp:'PV',dc:'DD des sorts',spellatk:'Attaque des sorts',crit:'Plage de critique'};
+  for(const k in L)if(+bn[k])p.push(`${L[k]} ${k==='crit'?'−'+bn[k]:sgn(+bn[k])}`);
+  if(bn.saveAb)for(const k in bn.saveAb)p.push(`Sauvegarde de ${ABL[k]} ${sgn(bn.saveAb[k])}`);
+  if(bn.abil)for(const k in bn.abil)p.push(`${ABL[k]} ${sgn(bn.abil[k])}`);
+  if(bn.set)for(const k in bn.set)p.push(`${ABL[k]} fixée à ${bn.set[k]}`);
+  if(bn.skills)for(const k in bn.skills)p.push(`${SKN[k]} ${sgn(bn.skills[k])}`);
+  if(bn.res&&bn.res.length)p.push('Résistance : '+bn.res.join(', '));
+  return p.join(', ');
+}
+function hideBar(){
+  const camp=S.customItems.filter(isCamp).length;const nd=DUP.size;const nh=S.prefs.hidden.length;
+  return `<div class="checks hidebar">
+    <label><input type="checkbox" data-pref="hideCamp"${S.prefs.hideCamp?' checked':''}>Masquer tenues de camp et sous-vêtements (${camp})</label>
+    <label><input type="checkbox" data-pref="hideDup"${S.prefs.hideDup?' checked':''}>Masquer les doublons exacts (${nd})</label>
+    <label><input type="checkbox" data-pref="hideLegacy"${S.prefs.hideLegacy?' checked':''}>Masquer les objets introuvables en jeu (${S.customItems.filter(i=>i.legacy).length})</label>
+    <label><input type="checkbox" data-pref="showHidden"${S.prefs.showHidden?' checked':''}>Tout afficher, même masqué${nh?` (${nh} masqué${nh>1?'s':''} à la main)`:''}</label></div>`;
+}
+document.addEventListener('change',e=>{const el=e.target;if(!el.dataset||!el.dataset.pref)return;S.prefs[el.dataset.pref]=el.checked;Store.touch('prefs');renderGlossBody();});
+ACT['item-hide']=t=>{const id=t.dataset.id;const L=S.prefs.hidden;const i=L.indexOf(id);if(i>=0)L.splice(i,1);else L.push(id);Store.touch('prefs');closeDlg();renderGlossBody();toast(i>=0?'Objet de nouveau visible.':'Objet masqué. Coche « Tout afficher » pour le revoir.');};
+
+/* =========================================================
+   VERSION 10 : CA, lieux et objets inaccessibles depuis le wiki
+   ========================================================= */
+WIKI_LINKS.equipment='https://bg3.wiki/w/index.php?title=Special:CargoExport&tables=equipment&fields=_pageName,name,rarity,price,type,enchantment,special,proficiency,armour_class,armour_class_bonus,stealth_disadvantage,where_to_find,legacy&limit=5000&format=json';
+WIKI_LINKS.weapons='https://bg3.wiki/w/index.php?title=Special:CargoExport&tables=weapons&fields=_pageName,name,rarity,price,enchantment,damage,damage_type,extra_damage,extra_damage_type,extra_damage_2,extra_damage_2_type,category,handedness,finesse,light,reach,thrown,type,special,where_to_find,legacy&limit=5000&format=json';
+S.prefs.hideLegacy=true;
+const ACT_PLACES={
+  1:['act 1','act one','nautiloid','ravaged beach','emerald grove','druid grove','blighted village','risen road','waukeen','goblin camp','shattered sanctum','underdark','grymforge','mountain pass','rosymorn','crèche','creche','selûne','selune outpost','arcane tower','myconid','sunlit wetlands','zhentarim hideout','dank crypt','defiled temple','whispering depths','owlbear','chapel ruins','overgrown ruins','putrid bog','riverside teahouse','auntie ethel','sorrowglen','tollhouse','trielta','windmill','grove'],
+  2:['act 2','act two','shadow-cursed','shadow cursed','last light','moonrise','reithwin','gauntlet of shar','house of healing','grand mausoleum','ketheric','thorm','ruined battlefield','masons','mason\'s guild','grymforge? ','toll house','lunar','shar'],
+  3:['act 3','act three','rivington','wyrm\'s','wyrms','lower city','baldur\'s gate','sorcerous sundries','stormshore','devil\'s fee','upper city','house of hope','iron throne','steel watch','foundry','bhaal','undercity','circus of the last days','elfsong','szarr','philgrave','jannath','cazador','temple of bhaal','sharess','basilisk gate','counting house','gortash','grey harbour','blushing mermaid','danthelon','lodge','wine festival','outer city','forge of the nine','lorroakan','ramazith','murder tribunal','high hall','bhaalist','cloister of sombre','flymm','heapside','facemaker']
+};
+function guessAct(t){
+  const x=String(t||'').toLowerCase();if(!x)return null;
+  const hits=[1,2,3].filter(a=>ACT_PLACES[a].some(k=>k.trim()&&x.includes(k.trim())));
+  if(hits.length===1)return hits[0];
+  const ex=[1,2,3].filter(a=>x.includes('act '+a)||x.includes(['','act one','act two','act three'][a]));
+  return ex.length===1?ex[0]:null;
+}
+function placeInfo(r,it){
+  const raw=fget(r,'where_to_find');
+  if(raw){const full=cleanWiki(cleanWikiHTML(raw)).replace(/\s*\n\s*/g,' ').trim();it.where=full;it.source=full.length>110?full.slice(0,107).replace(/\s+\S*$/,'')+'…':full;const a=guessAct(full);if(a)it.act=a;}
+  const lg=fget(r,'legacy');if(lg)it.legacy=String(lg).toLowerCase();
+  return it;
+}
+function weaponFromWiki(r){
+  const page=fget(r,'_pageName','name');const name=fget(r,'name')||page;
+  const typ=String(fget(r,'type')||'').toLowerCase();
+  const g=(GROUP_KEYS.find(([k])=>typ.includes(k))||[])[1]||'dagger';
+  const hand=String(fget(r,'handedness')||'').toLowerCase();
+  const props=[];
+  if(truthy(fget(r,'finesse')))props.push('finesse');if(truthy(fget(r,'light')))props.push('light');
+  if(truthy(fget(r,'reach')))props.push('reach');if(truthy(fget(r,'thrown')))props.push('thrown');
+  if(hand.includes('two'))props.push('twohanded');if(hand.includes('versatile'))props.push('versatile');
+  if(HEAVY_GROUPS.includes(g))props.push('heavy');
+  const dmg=parseDice(fget(r,'damage')||'1d4');
+  const extra=[['extra_damage','extra_damage_type'],['extra_damage_2','extra_damage_2_type']].map(([d,t])=>fget(r,d)?{dice:String(fget(r,d)),type:enFR(fget(r,t))}:null).filter(Boolean);
+  const dice=dmg.dice.map(([n,sd])=>n+'d'+sd).join('+')||'1d4';
+  return placeInfo(r,{id:'w-'+slug(page),name,en:name,cat:'Arme',rarity:rarFR(fget(r,'rarity')),act:null,source:'',price:fget(r,'price')!=null?+String(fget(r,'price')).replace(/[^\d.]/g,'')||null:null,wiki:true,
+    w:{kind:String(fget(r,'category')||'').toLowerCase().includes('martial')?'martial':'simple',group:g,dice,dtype:enFR(fget(r,'damage_type')),props,vers:props.includes('versatile')?bumpDie(dice):null,ranged:RANGED_GROUPS.includes(g),enchant:parseInt(fget(r,'enchantment'))||0,extra},
+    desc:cleanWiki(fget(r,'special'))});
+}
+function equipFromWiki(r){
+  const page=fget(r,'_pageName','name');const name=fget(r,'name')||page;
+  const t=String(fget(r,'type')||'').toLowerCase();const prof=String(fget(r,'proficiency')||'').toLowerCase();
+  const it={id:'e-'+slug(page),name,en:name,rarity:rarFR(fget(r,'rarity')),act:null,source:'',price:fget(r,'price')!=null?+String(fget(r,'price')).replace(/[^\d.]/g,'')||null:null,wiki:true,desc:cleanWiki(fget(r,'special'))};
+  const ench=parseInt(fget(r,'enchantment'))||0;
+  const acRaw=fget(r,'armour_class');const acN=acRaw!=null?parseInt(String(acRaw).replace(/[^\d-]/g,'')):NaN;
+  const acBonus=parseInt(String(fget(r,'armour_class_bonus')||'').replace(/[^\d-]/g,''))||0;
+  const stealth=truthy(fget(r,'stealth_disadvantage'));
+  if(t.includes('shield')||prof.includes('shield')){it.cat='Bouclier';it.a={type:'shield',base:!isNaN(acN)&&acN>0?acN:2,acTotal:!isNaN(acN)};if(isNaN(acN)&&ench)it.bonus={ac:ench};if(acBonus)it.bonus={...(it.bonus||{}),ac:(it.bonus&&it.bonus.ac||0)+acBonus};}
+  else if(t.includes('armour')||t.includes('armor')||prof.includes('armour')){
+    it.cat='Armure';const src=prof||t;const ty=src.includes('heavy')?'heavy':src.includes('medium')?'medium':'light';
+    it.a={type:ty,base:!isNaN(acN)?acN:null,stealth,acTotal:!isNaN(acN)};
+    if(acBonus)it.bonus={ac:acBonus};
+    if(isNaN(acN)&&ench)it.desc=(it.desc+`\nEnchantement +${ench}.`).trim();
+  }
+  else if(t.includes('cloth')){it.cat='Armure';}
+  else if(t.includes('helm')||t.includes('head')||t.includes('hat')||t.includes('circlet')||t.includes('mask')){it.cat='Casque';}
+  else if(t.includes('cloak')||t.includes('cape')){it.cat='Cape';}
+  else if(t.includes('glove')||t.includes('gauntlet')||t.includes('hand')||t.includes('bracer')){it.cat='Gants';}
+  else if(t.includes('boot')||t.includes('foot')||t.includes('shoe')){it.cat='Bottes';}
+  else if(t.includes('amulet')||t.includes('neck')){it.cat='Amulette';}
+  else if(t.includes('ring')){it.cat='Anneau';}
+  else it.cat='Divers';
+  if(t)it.wtype=fget(r,'type');
+  return placeInfo(r,it);
+}
+{const old=isHiddenItem;isHiddenItem=function(i){if(!S.prefs.showHidden&&S.prefs.hideLegacy&&i.legacy)return true;return old(i);};}
+const LEGACY_FR={inaccessible:'inaccessible en jeu',unobtainable:'impossible à obtenir',legacy:'retiré du jeu (ancienne version)',unusable:'inutilisable'};
 
 /* =========================================================
    DÉMARRAGE
