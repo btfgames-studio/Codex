@@ -6,7 +6,7 @@
 <title>Codex de la Porte de Baldur</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f2eff6; --surface:#ffffff; --surface2:#e9e4f0; --ink:#231b31; --muted:#62577a; --line:#d4cce0;
@@ -376,6 +376,25 @@ button.ref{padding:0 .2em;white-space:normal}
 .bcard .ytcard{max-width:none}
 :root{--gc-build:var(--r-legendaire);--gc-sticky:var(--gold);--gc-graph:var(--accent)}
 .ref[data-t=build]{--gc:var(--gc-build)}.ref[data-t=build]::before{content:"🧙 "}
+.bctx{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;min-height:2.5rem;padding:.35rem .7rem;margin-bottom:.6rem;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.board.mode-text{cursor:text}
+.bc-sticky{border:none!important;border-radius:2px;background:var(--sticky)!important;color:#262626;box-shadow:0 1px 2px rgba(0,0,0,.22),0 10px 20px rgba(0,0,0,.28)}
+.bc-sticky.selected,.bc-text.selected{outline:2px dashed var(--accent);outline-offset:4px}
+.bgrip{height:14px;flex:none;cursor:grab;touch-action:none;background:linear-gradient(rgba(0,0,0,.07),transparent)}
+.bgrip:active{cursor:grabbing}
+.ntitle{padding:0 .85rem;font-weight:700;font-size:1.12em;line-height:1.3;outline:none;min-height:1.3em;color:#1f1f1f;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ntitle:focus{white-space:normal}
+.ntitle:empty::before{content:attr(data-ph);color:rgba(0,0,0,.32)}
+.bc-sticky .sticky{flex:1;min-height:0;padding:.3rem .85rem 1.6rem;overflow:auto;outline:none;white-space:pre-wrap;line-height:1.45;color:#262626}
+.bc-sticky .sticky:empty::before{content:attr(data-ph);color:rgba(0,0,0,.32)}
+.nfold{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;touch-action:none;background:linear-gradient(to top left,var(--surface2) 50%,color-mix(in srgb,var(--sticky) 72%,#000) 50%);box-shadow:-2px -2px 3px rgba(0,0,0,.12)}
+.bc-text{background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible;border-radius:4px}
+.bc-text .bgrip{height:9px;opacity:0;background:var(--accent);border-radius:4px 4px 0 0}
+.bc-text:hover .bgrip,.bc-text.selected .bgrip{opacity:.55}
+.ftext{outline:none;padding:.1rem .3rem;min-height:1.4em;white-space:pre-wrap;line-height:1.25}
+.ftext:empty::before{content:attr(data-ph);color:var(--muted)}
+.tresize{position:absolute;right:-6px;bottom:-6px;width:12px;height:12px;border-radius:50%;background:var(--accent);opacity:0;cursor:nwse-resize;touch-action:none}
+.bc-text:hover .tresize,.bc-text.selected .tresize{opacity:.85}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -3745,8 +3764,9 @@ function attachBoard(){
   const pt=e=>{const r=board.getBoundingClientRect();return [Math.round((e.clientX-r.left)/z()),Math.round((e.clientY-r.top)/z())];};
   let op=null;let top=10;
   board.addEventListener('pointerdown',e=>{
+    if(BV2.mode==='text')return;
     if(BV2.mode==='move'){
-      const rz=e.target.closest('[data-resize]');const hd=e.target.closest('.bhead');
+      const rz=e.target.closest('[data-resize]');const hd=e.target.closest('.bhead,[data-grip]');
       if(!rz&&(!hd||e.target.closest('button')))return;
       const el=(rz||hd).closest('.bcard');const c=S.board.cards.find(x=>x.id===el.dataset.cid);if(!c)return;
       e.preventDefault();el.style.zIndex=++top+100;const [x,y]=pt(e);
@@ -3760,7 +3780,7 @@ function attachBoard(){
   board.addEventListener('pointermove',e=>{
     if(!op)return;const [x,y]=pt(e);
     if(op.kind==='drag'){op.c.x=Math.max(0,op.cx+x-op.x0);op.c.y=Math.max(0,op.cy+y-op.y0);op.el.style.left=op.c.x+'px';op.el.style.top=op.c.y+'px';}
-    else if(op.kind==='resize'){op.c.w=Math.max(170,op.cw+x-op.x0);op.c.h=Math.max(110,op.ch+y-op.y0);op.el.style.width=op.c.w+'px';op.el.style.height=op.c.h+'px';}
+    else if(op.kind==='resize'){const tx=op.c.type==='text';op.c.w=Math.max(tx?80:150,op.cw+x-op.x0);op.c.h=Math.max(tx?30:110,op.ch+y-op.y0);op.el.style.width=op.c.w+'px';op.el.style[tx?'minHeight':'height']=op.c.h+'px';}
     else if(op.kind==='erase')eraseAt(x,y);
     else if(op.kind==='draw'){const p=op.s.pts;if(op.s.kind==='arrow'){p[1]=[x,y];}else{const l=p[p.length-1];if(Math.hypot(x-l[0],y-l[1])>=3)p.push([x,y]);}
       const path=$(`#bdraw path[data-sid="${op.s.id}"]`);if(path)path.setAttribute('d',strokeD(op.s));}
@@ -3792,6 +3812,145 @@ document.addEventListener('change',e=>{if(e.target.id==='b-width')BV2.width=+e.t
 const STK={};
 document.addEventListener('input',e=>{const el=e.target.closest&&e.target.closest('[data-sticky]');if(!el)return;const c=S.board.cards.find(x=>x.id===el.dataset.sticky);if(!c)return;clearTimeout(STK[c.id]);STK[c.id]=setTimeout(()=>{c.text=el.innerText;Store.touch('board');},300);});
 document.addEventListener('paste',e=>{const el=e.target.closest&&e.target.closest('[data-sticky]');if(!el)return;const t=e.clipboardData&&e.clipboardData.getData('text/plain');if(!t)return;e.preventDefault();e.stopImmediatePropagation();document.execCommand('insertText',false,t);},true);
+
+/* =========================================================
+   VERSION 12 : POST-IT ÉPURÉS, TEXTE LIBRE, MISE EN FORME
+   ========================================================= */
+const PAPERS=['#ffffff','#f5d76e','#ffb7c5','#a8e6c1','#a8c8ff','#d7b8ff','#ffc58a'];
+const INKS=['#f0f0f0','#111111','#e5484d','#f5a524','#46a758','#3e63dd','#8e4ec6'];
+const FONTS=[['sans','Simple','var(--sans)'],['serif','Livre','var(--serif)'],['hand','Manuscrite','"Caveat", "Segoe Print", cursive'],['mono','Machine à écrire','"Courier New", ui-monospace, monospace']];
+const FSIZES=[14,16,20,26,34,44];
+const fontCss=k=>(FONTS.find(f=>f[0]===k)||FONTS[0])[2];
+let BSEL=null;
+function cleanRich(html){
+  const t=document.createElement('template');t.innerHTML=String(html||'');
+  const OK=new Set(['B','STRONG','I','EM','U','BR','DIV','P','SPAN']);
+  const walk=n=>{[...n.childNodes].forEach(c=>{
+    if(c.nodeType===1){if(/^(SCRIPT|STYLE|IFRAME|OBJECT|IMG|SVG)$/i.test(c.tagName)){c.remove();return;}walk(c);if(!OK.has(c.tagName)){c.replaceWith(...c.childNodes);return;}
+      const keepU=c.tagName==='SPAN'&&/underline/.test(c.getAttribute('style')||'');const keepB=c.tagName==='SPAN'&&/font-weight:\s*(bold|[6-9]00)/.test(c.getAttribute('style')||'');const keepI=c.tagName==='SPAN'&&/italic/.test(c.getAttribute('style')||'');
+      [...c.attributes].forEach(a=>c.removeAttribute(a.name));
+      if(keepU||keepB||keepI){let inner=c;if(keepU){const u=document.createElement('u');u.append(...inner.childNodes);inner.append(u);}if(keepB){const b=document.createElement('b');b.append(...c.childNodes);c.append(b);}if(keepI){const i=document.createElement('i');i.append(...c.childNodes);c.append(i);}}
+    }else if(c.nodeType!==3)c.remove();});};
+  walk(t.content);return t.innerHTML;
+}
+function noteMigrate(c){if((c.type==='sticky'||c.type==='text')&&c.html==null){c.html=esc(c.text||'').replace(/\n/g,'<br>');}}
+function noteStyle(c){return `font-family:${fontCss(c.font)};font-size:${c.size||16}px;`;}
+function cardHTML(c){
+  if(c.type!=='sticky'&&c.type!=='text')return _cardHTMLpinned(c);
+  noteMigrate(c);const sel=c.id===BSEL?' selected':'';
+  if(c.type==='text')return `<div class="bcard bc-text${sel}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;min-height:${c.h}px;color:${c.color||'var(--ink)'};${noteStyle(c)}">
+    <div class="bgrip" data-grip title="Glisse pour déplacer"></div>
+    <div class="ftext" contenteditable="true" data-note="${c.id}" data-ph="Écris ton texte…">${cleanRich(c.html)}</div>
+    <span class="tresize" data-resize="${c.id}" title="Redimensionner" aria-hidden="true"></span></div>`;
+  return `<div class="bcard bc-sticky${sel}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--sticky:${c.color||'#f5d76e'};${noteStyle(c)}">
+    <div class="bgrip" data-grip title="Glisse pour déplacer"></div>
+    <div class="ntitle" contenteditable="true" data-ntitle="${c.id}" data-ph="Titre">${esc(c.title||'')}</div>
+    <div class="sticky" contenteditable="true" data-note="${c.id}" data-ph="Écris ici…">${cleanRich(c.html)}</div>
+    <span class="nfold" data-resize="${c.id}" title="Tire ici pour redimensionner" aria-hidden="true"></span></div>`;
+}
+/* reprend l'ancien rendu des cartes épinglées (fonction de la version 11) */
+function _cardHTMLpinned(c){
+  const e=ent(c.ref);const t=c.type==='graph'?'graph':(e?e.t:'note');
+  const title=e?(c.type==='graph'?'Réseau : '+e.name:e.name):'Élément supprimé';const icon=c.type==='graph'?'🕸️':e?e.icon:'❔';
+  return `<div class="bcard bc-${t}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--gc:var(--gc-${t})">
+    <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${icon}</span><span class="bt">${esc(title)}</span>
+      ${e?`<button class="bbtn" data-act="ref-open" data-ref="${esc(c.ref)}" title="Ouvrir la fiche" aria-label="Ouvrir la fiche">↗</button>`:''}
+      <button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
+    <div class="bbody">${cardBody(c)}</div>
+    <span class="bresize" data-resize="${c.id}" title="Redimensionner" aria-hidden="true"></span></div>`;
+}
+function ctxHTML(){
+  const c=S.board.cards.find(x=>x.id===BSEL);
+  if(!c||(c.type!=='sticky'&&c.type!=='text'))return `<span class="small muted">${BV2.mode==='text'?'Clique sur le tableau pour écrire.':'Clique sur un post-it ou un texte pour le mettre en forme.'}</span>`;
+  const isT=c.type==='text';const cols=isT?INKS:PAPERS;const cur=c.color||(isT?'':'#f5d76e');
+  return `<span class="small muted">${isT?'Texte':'Post-it'} :</span>
+    <span class="pens">${cols.map(col=>`<button class="pen${cur===col?' on':''}" data-act="note-color" data-c="${col}" style="background:${col}" aria-label="${isT?'Couleur du texte':'Couleur du papier'} ${col}"></button>`).join('')}</span>
+    <select id="n-font" aria-label="Police">${FONTS.map(([k,n])=>opt(k,n,c.font||'sans')).join('')}</select>
+    <select id="n-size" aria-label="Taille">${FSIZES.map(s=>opt(s,s+' px',c.size||16)).join('')}</select>
+    <span class="seg fmt"><button data-act="fmt" data-cmd="bold" title="Gras (Ctrl+B)" aria-label="Gras"><b>G</b></button><button data-act="fmt" data-cmd="italic" title="Italique (Ctrl+I)" aria-label="Italique"><i>I</i></button><button data-act="fmt" data-cmd="underline" title="Souligné (Ctrl+U)" aria-label="Souligné"><u>S</u></button></span>
+    <button class="small danger" data-act="note-del">Supprimer</button>`;
+}
+function renderCtx(){const el=$('#bctx');if(el)el.innerHTML=ctxHTML();updateFmtState();}
+function selectNote(id){if(BSEL===id)return;BSEL=id;$$('.bcard.selected').forEach(x=>x.classList.remove('selected'));if(id){const el=$(`.bcard[data-cid="${id}"]`);if(el)el.classList.add('selected');}renderCtx();}
+function renderAccueil(){
+  if(!S.board.cards.length&&!S.board.strokes.length&&!S.board.seeded){S.board.seeded=true;S.board.cards.push({id:uid(),type:'sticky',x:40,y:40,w:330,h:250,color:'#f5d76e',title:'Bienvenue !',html:'« 📌 Épingler » sur une fiche l’ajoute ici.<br>Tire un post-it par sa bordure du haut, agrandis-le par son coin replié.<br>Outil <b>Texte</b> : clique n’importe où pour écrire.'});Store.touch('board');}
+  S.board.cards.forEach(noteMigrate);
+  if(BSEL&&!S.board.cards.find(c=>c.id===BSEL))BSEL=null;
+  const z=S.board.z||1;const [W,H]=boardSize();
+  $('#v-accueil').innerHTML=`
+  <div class="boardbar">
+    <div class="seg" role="group" aria-label="Outil">${[['move','🖐 Déplacer'],['text','🅣 Texte'],['pen','✏️ Crayon'],['arrow','➚ Flèche'],['erase','🧽 Gomme']].map(([k,n])=>`<button data-act="board-mode" data-k="${k}" aria-pressed="${BV2.mode===k}">${n}</button>`).join('')}</div>
+    <span class="pens" title="Couleur du crayon">${PENCOLORS.map(c=>`<button class="pen${BV2.color===c?' on':''}" data-act="board-color" data-c="${c}" style="background:${c}" aria-label="Couleur du crayon ${c}"></button>`).join('')}</span>
+    <select id="b-width" aria-label="Épaisseur du trait">${[[3,'Fin'],[5,'Moyen'],[10,'Épais']].map(([v,n])=>opt(v,n,BV2.width)).join('')}</select>
+    <span style="flex:1"></span>
+    <button class="primary" data-act="board-add">📌 Épingler…</button>
+    <button data-act="board-sticky">🗒️ Post-it</button>
+    <span class="seg"><button data-act="board-zoom" data-z="-1" aria-label="Dézoomer">−</button><button disabled style="opacity:1;cursor:default">${Math.round(z*100)}\u202f%</button><button data-act="board-zoom" data-z="1" aria-label="Zoomer">+</button></span>
+    <button class="danger" data-act="board-clear-draw"${S.board.strokes.length?'':' disabled'}>Effacer le dessin</button>
+  </div>
+  <div class="bctx" id="bctx" aria-live="polite"></div>
+  <div class="boardwrap" id="boardwrap"><div class="bsizer" style="width:${W*z}px;height:${H*z}px">
+    <div class="board mode-${BV2.mode}" id="board" style="width:${W}px;height:${H}px;transform:scale(${z})">
+      ${S.board.cards.map(cardHTML).join('')}
+      <svg class="bdraw" id="bdraw" width="${W}" height="${H}" aria-hidden="true"></svg>
+    </div></div></div>`;
+  renderStrokes();fixYtThumbs($('#board'));attachBoard();renderCtx();
+  const board=$('#board');
+  board.addEventListener('pointerdown',e=>{
+    if(BV2.mode==='text'){
+      if(e.target.closest('.bcard'))return;
+      e.preventDefault();e.stopImmediatePropagation();
+      const r=board.getBoundingClientRect();const zz=S.board.z||1;const x=Math.round((e.clientX-r.left)/zz),y=Math.round((e.clientY-r.top)/zz-12);
+      const c={id:uid(),type:'text',x,y,w:260,h:40,color:BV2.textColor||'',font:BV2.lastFont||'hand',size:BV2.lastSize||26,html:''};
+      S.board.cards.push(c);BSEL=c.id;ACT['board-mode']({dataset:{k:'move'}});
+      const tmp=document.createElement('div');tmp.innerHTML=cardHTML(c);board.insertBefore(tmp.firstElementChild,$('#bdraw'));
+      renderCtx();setTimeout(()=>{const ed=$(`[data-note="${c.id}"]`);if(ed)ed.focus();},20);return;
+    }
+    const card=e.target.closest('.bc-sticky,.bc-text');
+    if(card)selectNote(card.dataset.cid);
+    else if(BV2.mode==='move'&&!e.target.closest('.bcard'))selectNote(null);
+  },true);
+}
+ACT['board-mode']=t=>{BV2.mode=t.dataset.k;$$('[data-act="board-mode"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===BV2.mode));const b=$('#board');if(b)b.className='board mode-'+BV2.mode;if(BV2.mode!=='move')selectNote(null);else renderCtx();};
+ACT['board-sticky']=()=>{const [x,y]=freeSpot(230,200);const c={id:uid(),type:'sticky',x,y,w:230,h:200,color:'#f5d76e',title:'',html:'',font:'sans',size:16};S.board.cards.push(c);BSEL=c.id;Store.touch('board');renderAccueil();setTimeout(()=>{const t=$(`[data-ntitle="${c.id}"]`);if(t)t.focus();},30);};
+ACT['note-color']=t=>{const c=S.board.cards.find(x=>x.id===BSEL);if(!c)return;c.color=t.dataset.c;const el=$(`.bcard[data-cid="${c.id}"]`);if(el){if(c.type==='text')el.style.color=c.color;else el.style.setProperty('--sticky',c.color);}if(c.type==='text')BV2.textColor=c.color;Store.touch('board');renderCtx();};
+ACT['note-del']=()=>{const c=S.board.cards.find(x=>x.id===BSEL);if(!c)return;S.board.cards=S.board.cards.filter(x=>x!==c);BSEL=null;Store.touch('board');const el=$(`.bcard[data-cid="${c.id}"]`);if(el)el.remove();renderCtx();};
+ACT['fmt']=t=>{
+  const c=S.board.cards.find(x=>x.id===BSEL);if(!c)return;const ed=$(`[data-note="${c.id}"]`);if(!ed)return;
+  const sel=window.getSelection();const inside=sel&&sel.rangeCount&&ed.contains(sel.anchorNode);
+  if(!inside){ed.focus();const r=document.createRange();r.selectNodeContents(ed);sel.removeAllRanges();sel.addRange(r);}
+  document.execCommand(t.dataset.cmd,false,null);
+  if(!inside)sel.collapseToEnd();
+  c.html=cleanRich(ed.innerHTML);Store.touch('board');updateFmtState();
+};
+function updateFmtState(){$$('[data-act="fmt"]').forEach(b=>{let on=false;try{on=document.queryCommandState(b.dataset.cmd);}catch(e){}b.setAttribute('aria-pressed',on);});}
+document.addEventListener('selectionchange',()=>{if(cur==='accueil'&&BSEL)updateFmtState();});
+document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('[data-act="fmt"],[data-act="note-color"]'))e.preventDefault();});
+document.addEventListener('change',e=>{
+  const c=S.board.cards.find(x=>x.id===BSEL);if(!c)return;
+  if(e.target.id==='n-font'){c.font=e.target.value;BV2.lastFont=c.font;}else if(e.target.id==='n-size'){c.size=+e.target.value;BV2.lastSize=c.size;}else return;
+  const el=$(`.bcard[data-cid="${c.id}"]`);if(el){el.style.fontFamily=fontCss(c.font);el.style.fontSize=(c.size||16)+'px';}Store.touch('board');
+});
+const NT={};
+document.addEventListener('input',e=>{
+  const ed=e.target.closest&&e.target.closest('[data-note]');
+  if(ed){const c=S.board.cards.find(x=>x.id===ed.dataset.note);if(!c)return;clearTimeout(NT[c.id]);NT[c.id]=setTimeout(()=>{c.html=cleanRich(ed.innerHTML);Store.touch('board');},250);return;}
+  const tt=e.target.closest&&e.target.closest('[data-ntitle]');
+  if(tt){const c=S.board.cards.find(x=>x.id===tt.dataset.ntitle);if(!c)return;c.title=String(tt.innerText??tt.textContent).replace(/\n/g,' ').trim();clearTimeout(NT['t'+c.id]);NT['t'+c.id]=setTimeout(()=>Store.touch('board'),250);}
+});
+document.addEventListener('keydown',e=>{
+  const tt=e.target.closest&&e.target.closest('[data-ntitle]');
+  if(tt&&e.key==='Enter'){e.preventDefault();const n=$(`[data-note="${tt.dataset.ntitle}"]`);if(n)n.focus();}
+  if(cur==='accueil'&&BSEL&&(e.key==='Delete')&&!(e.target.isContentEditable||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)))ACT['note-del']();
+});
+document.addEventListener('focusout',e=>{
+  const ed=e.target.closest&&e.target.closest('.ftext[data-note]');if(!ed)return;
+  const c=S.board.cards.find(x=>x.id===ed.dataset.note);if(!c)return;
+  c.html=cleanRich(ed.innerHTML);
+  if(!ed.textContent.trim()){setTimeout(()=>{if(document.activeElement&&ed.contains(document.activeElement))return;S.board.cards=S.board.cards.filter(x=>x!==c);if(BSEL===c.id)BSEL=null;const el=ed.closest('.bcard');if(el)el.remove();renderCtx();Store.touch('board');},150);}
+  else Store.touch('board');
+});
+document.addEventListener('paste',e=>{const el=e.target.closest&&e.target.closest('[data-note],[data-ntitle]');if(!el)return;const t=e.clipboardData&&e.clipboardData.getData('text/plain');if(!t)return;e.preventDefault();e.stopImmediatePropagation();document.execCommand('insertText',false,t);},true);
 
 /* =========================================================
    DÉMARRAGE
