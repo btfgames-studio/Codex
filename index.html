@@ -345,13 +345,44 @@ button.ref{padding:0 .2em;white-space:normal}
 .ytplay{position:absolute;inset:auto auto 50% 50%;transform:translate(-50%,50%);width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.8rem}
 .qs-0{background:var(--surface2)}.qs-1{background:var(--accent-soft)}.qs-2{background:color-mix(in srgb,var(--ok) 25%,transparent)}.qs-3{background:color-mix(in srgb,var(--danger) 25%,transparent)}
 .hidebar{margin:-.3rem 0 .5rem;font-size:.85rem}
+.boardbar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin-bottom:.6rem}
+.boardwrap{overflow:auto;height:calc(100vh - 170px);min-height:420px;border:1px solid var(--line);border-radius:14px;background:var(--surface2)}
+.bsizer{position:relative}
+.board{position:absolute;left:0;top:0;transform-origin:0 0;background-image:radial-gradient(var(--line) 1.2px,transparent 1.2px);background-size:28px 28px}
+.bdraw{position:absolute;left:0;top:0;pointer-events:none;z-index:5000}
+.bdraw path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.board.mode-pen .bdraw,.board.mode-arrow .bdraw{pointer-events:auto;cursor:crosshair;touch-action:none}
+.board.mode-erase .bdraw{pointer-events:auto;cursor:cell;touch-action:none}
+.bcard{position:absolute;display:flex;flex-direction:column;background:var(--surface);border:2px solid var(--gc);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.28);overflow:hidden}
+.bhead{display:flex;align-items:center;gap:.35rem;padding:.35rem .5rem;background:color-mix(in srgb,var(--gc) 20%,var(--surface));cursor:grab;touch-action:none;user-select:none}
+.bhead:active{cursor:grabbing}
+.bt{flex:1;min-width:0;font-weight:700;font-family:var(--serif);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bbtn{border:0;background:transparent;padding:0 .3rem;color:var(--muted);line-height:1.4}
+.bbtn:hover{color:var(--ink)}
+.bbody{flex:1;overflow:auto;padding:.5rem .6rem}
+.bresize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 52%,var(--gc) 52%)}
+.bthumb{width:56px;height:56px;object-fit:cover;border-radius:8px;flex:none}
+.bc-sticky{background:var(--sticky);border-color:color-mix(in srgb,var(--sticky) 65%,#000);color:#222}
+.bc-sticky .bhead{background:color-mix(in srgb,var(--sticky) 88%,#000)}
+.bc-sticky .bbtn,.bc-sticky .bt{color:#2a2a2a}
+.bc-sticky .bresize{background:linear-gradient(135deg,transparent 52%,rgba(0,0,0,.35) 52%)}
+.sticky{min-height:100%;outline:none;white-space:pre-wrap;color:#222;line-height:1.45}
+.sticky:empty::before{content:attr(data-ph);color:#666}
+.bcolors{display:flex;gap:3px}
+.bcol{width:14px;height:14px;border-radius:50%;padding:0;border:1px solid rgba(0,0,0,.35)}
+.pens{display:flex;gap:5px;align-items:center}
+.pen{width:22px;height:22px;border-radius:50%;padding:0;border:2px solid var(--line)}
+.pen.on{outline:2px solid var(--accent);outline-offset:2px}
+.bcard .ytcard{max-width:none}
+:root{--gc-build:var(--r-legendaire);--gc-sticky:var(--gold);--gc-graph:var(--accent)}
+.ref[data-t=build]{--gc:var(--gc-build)}.ref[data-t=build]::before{content:"🧙 "}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="bar">
-    <a class="brand" href="#glossaire" aria-label="Codex de la Porte de Baldur, accueil">
+    <a class="brand" href="#accueil" title="Accueil" aria-label="Codex de la Porte de Baldur, accueil">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2 7.5 9.5h9zM3 7l4.5 2.5L12 17l4.5-7.5L21 7M7.5 9.5 3 17M16.5 9.5 21 17M12 17v5M3 17h18"/></svg>
       <span>Codex de la Porte de Baldur</span>
     </a>
@@ -360,6 +391,7 @@ button.ref{padding:0 .2em;white-space:normal}
   </div>
 </header>
 <main>
+  <section class="view" id="v-accueil" hidden></section>
   <section class="view" id="v-glossaire" hidden></section>
   <section class="view" id="v-armes" hidden></section>
   <section class="view" id="v-equipements" hidden></section>
@@ -2350,7 +2382,7 @@ function renderPerso(){
       </div>
       <div class="panel sheet">
         <div class="row" style="justify-content:space-between;margin-bottom:.6rem"><h2 style="margin:0">${esc(b.name)}</h2>
-          <div class="row"><button class="small" data-act="build-dup">Dupliquer</button><button class="small danger" data-act="build-del"${S.builds.length<2?' disabled':''}>Supprimer</button></div></div>
+          <div class="row"><button class="small" data-act="pin" data-ref="build:${b.id}">📌 Épingler</button><button class="small" data-act="build-dup">Dupliquer</button><button class="small danger" data-act="build-del"${S.builds.length<2?' disabled':''}>Supprimer</button></div></div>
         <details><summary>Portrait</summary>${imgZone('build:'+b.id)}</details>
         ${sheetHTML(b,D)}
       </div></div>`;
@@ -2960,7 +2992,7 @@ function linksPanel(ref){
   const nb=neighbors(ref);const groups=ETORDER.map(t=>[t,nb.filter(x=>x.e.t===t).sort((a,b)=>a.e.name.localeCompare(b.e.name,'fr'))]).filter(g=>g[1].length);
   return `<section class="links" data-ref="${esc(ref)}">
     <div class="links-head"><h3>Liens <span class="lcount">${nb.length}</span></h3>
-      <div class="row"><button class="small primary" data-act="link-add" data-ref="${esc(ref)}">+ Relier à…</button><button class="small" data-act="graph-open" data-ref="${esc(ref)}">Voir le réseau</button></div></div>
+      <div class="row"><button class="small" data-act="pin" data-ref="${esc(ref)}" title="Épingler sur l’accueil">📌 Épingler</button><button class="small primary" data-act="link-add" data-ref="${esc(ref)}">+ Relier à…</button><button class="small" data-act="graph-open" data-ref="${esc(ref)}">Voir le réseau</button></div></div>
     ${groups.length?groups.map(([t,list])=>`<div class="lgroup"><span class="lgtitle">${ETYPE[t][0]} ${ETYPE[t][2]}</span><div class="lchips">${list.map(x=>{const rem=x.srcs.some(s=>s.kind!=='text'&&s.kind!=='sub');
       return `<span class="lchip" style="--gc:var(--gc-${t})"><button data-act="ref-open" data-ref="${esc(x.ref)}" title="Ouvrir"><span aria-hidden="true">${x.e.icon}</span> ${esc(x.e.name)}${x.e.sub?`<small>${esc(x.e.sub)}</small>`:''}</button>${rem?`<button class="lx" data-act="link-del" data-a="${esc(ref)}" data-b="${esc(x.ref)}" aria-label="Retirer le lien avec ${esc(x.e.name)}" title="Retirer le lien">✕</button>`:`<span class="ltext" title="${x.srcs.some(s=>s.kind==='sub')?'Carte intérieure':'Lien écrit dans un texte : retire-le dans le texte'}">${x.srcs.some(s=>s.kind==='sub')?'🚪':'✎'}</span>`}</span>`;}).join('')}</div></div>`).join('')
     :'<p class="small muted" style="margin:.3rem 0 0">Aucun lien pour l’instant. Clique sur « Relier à… », ou sélectionne un mot dans un texte puis « Lier la sélection ».</p>'}
@@ -3256,7 +3288,7 @@ function renderReseau(){
   const head=`<h2>Réseau</h2>
   <p class="lead">Tout ce qui est relié à un élément, en arbre. Clique sur une carte pour la mettre au centre et suivre le fil, ou sur ↗ pour ouvrir sa fiche.</p>
   <div class="row graphbar"><button class="primary" data-act="graph-pick">🔍 Choisir un point de départ</button>
-    ${GR.hist.length?'<button data-act="graph-back">← Retour</button>':''}
+    ${GR.hist.length?'<button data-act="graph-back">← Retour</button>':''}${c?'<button data-act="pin-graph">📌 Épingler ce réseau</button>':''}
     <label class="row small">Profondeur <select id="gr-depth">${[1,2,3].map(n=>opt(n,n===1?'liens directs':n+' niveaux',GR.depth)).join('')}</select></label>
     <span class="legend small">${ETORDER.map(t=>`<span><i style="background:var(--gc-${t})"></i>${ETYPE[t][1]}</span>`).join('')}</span></div>`;
   if(!c){
@@ -3597,6 +3629,169 @@ function equipFromWiki(r){
 }
 {const old=isHiddenItem;isHiddenItem=function(i){if(!S.prefs.showHidden&&S.prefs.hideLegacy&&i.legacy)return true;return old(i);};}
 const LEGACY_FR={inaccessible:'inaccessible en jeu',unobtainable:'impossible à obtenir',legacy:'retiré du jeu (ancienne version)',unusable:'inutilisable'};
+
+/* =========================================================
+   VERSION 11 : ACCUEIL (tableau à épingler et dessiner)
+   ========================================================= */
+S.board={cards:[],strokes:[],z:1};
+Store.keys.push('board');
+{const p=Store.pack.bind(Store),u=Store.unpack.bind(Store);
+ Store.pack=k=>k==='board'?{...S.board}:p(k);
+ Store.unpack=(k,d)=>{if(k==='board'){if(d)S.board={cards:Array.isArray(d.cards)?d.cards:[],strokes:Array.isArray(d.strokes)?d.strokes:[],z:+d.z||1};return;}u(k,d);};}
+
+/* personnages comme éléments reliables */
+ETYPE.build=['🧙','Personnage','Personnages'];ETORDER.push('build');
+{const e0=ent,a0=allEntities,o0=openRef;
+ ent=function(ref){if(ref&&ref.startsWith('build:')){const id=ref.slice(6);const b=S.builds.find(x=>x.id===id);if(!b)return null;const lvl=(b.classes||[]).reduce((s,c)=>s+(+c.lvl||0),0);return {ref,t:'build',id,name:b.name,sub:(b.classes||[]).map(c=>(CLASSES[c.cls]||{}).n).filter(Boolean).join(' / ')+(lvl?', niv. '+lvl:''),icon:'🧙'};}return e0(ref);};
+ allEntities=function(){const L=a0();S.builds.forEach(b=>{const e=ent('build:'+b.id);if(e)L.push(e);});return L;};
+ openRef=function(ref){if(ref&&ref.startsWith('build:')){hidePop();closeDlg();S.current=ref.slice(6);Store.touch('builds');if(cur==='personnage')renderPerso();else location.hash='#personnage';return;}return o0(ref);};
+}
+
+function route(){
+  let v=(location.hash||'').slice(1);if(v==='glossaire')v='armes';
+  cur=v==='accueil'||VIEWS.some(x=>x[0]===v)?v:'accueil';
+  $('#tabs').innerHTML=VIEWS.map(([id,n])=>`<a href="#${id}"${id===cur?' aria-current="page"':''}>${n}</a>`).join('');
+  $$('main .view').forEach(sec=>{const on=sec.id==='v-'+cur;sec.hidden=!on;if(!on)sec.innerHTML='';});
+  hidePop();renderCurrent();
+}
+function renderCurrent(){({accueil:renderAccueil,personnage:renderPerso,sandbox:renderSandbox,armes:()=>renderItems('armes'),equipements:()=>renderItems('equipements'),sorts:renderSorts,biblio:renderBiblio,cartes:renderCartes,carnet:renderCarnet,quetes:renderQuetes,reseau:renderReseau,pnj:renderPnj,youtube:renderYoutube})[cur]();}
+
+/* ---------- épingler ---------- */
+const CSIZE={npc:[270,230],note:[290,230],video:[300,260],item:[270,190],quest:[290,220],build:[290,230],graph:[330,270],sticky:[220,180],spell:[260,190],lore:[290,230],marker:[250,170],map:[250,150]};
+function freeSpot(w,h){
+  const cards=S.board.cards;const wrap=$('#boardwrap');
+  if(wrap&&cur==='accueil'){const z=S.board.z||1;return [Math.round((wrap.scrollLeft+40)/z),Math.round((wrap.scrollTop+40)/z)];}
+  for(let row=0;row<40;row++)for(let col=0;col<5;col++){const x=40+col*320,y=40+row*270;if(!cards.some(c=>x<c.x+c.w&&x+w>c.x&&y<c.y+c.h&&y+h>c.y))return [x,y];}
+  return [40,40];
+}
+function pinRef(ref,type){
+  type=type||'ref';
+  if(S.board.cards.some(c=>c.ref===ref&&c.type===type)){toast('Déjà épinglé sur l’accueil.');return;}
+  const t=type==='graph'?'graph':splitRef(ref)[0];const [w,h]=CSIZE[t]||[270,200];const [x,y]=freeSpot(w,h);
+  S.board.cards.push({id:uid(),type,ref,x,y,w,h});Store.touch('board');
+  if(cur==='accueil')renderAccueil();else toast('📌 Épinglé sur l’accueil (clique sur le logo pour le voir).');
+}
+ACT['pin']=t=>pinRef(t.dataset.ref);
+ACT['pin-graph']=()=>{if(GR.center)pinRef(GR.center,'graph');};
+
+/* ---------- rendu ---------- */
+const BV2={mode:'move',color:'#e5484d',width:5};
+const PENCOLORS=['#e5484d','#f5a524','#46a758','#3e63dd','#8e4ec6','#f0f0f0','#111111'];
+function cardBody(c){
+  if(c.type==='sticky')return `<div class="sticky" contenteditable="true" data-sticky="${c.id}" data-ph="Écris ici…">${esc(c.text||'')}</div>`;
+  const e=ent(c.ref);if(!e)return '<p class="muted small">Cet élément a été supprimé. Retire la carte avec ✕.</p>';
+  const [t,id]=splitRef(c.ref);
+  if(c.type==='graph'){const nb=neighbors(c.ref).sort((a,b)=>ETORDER.indexOf(a.e.t)-ETORDER.indexOf(b.e.t));
+    return nb.length?`<div class="lchips">${nb.slice(0,40).map(x=>`<span class="lchip" style="--gc:var(--gc-${x.e.t})"><button data-act="ref-open" data-ref="${esc(x.ref)}"><span aria-hidden="true">${x.e.icon}</span> ${esc(x.e.name)}</button></span>`).join('')}</div><p style="margin:.5rem 0 0"><button class="small" data-act="graph-open" data-ref="${esc(c.ref)}">Ouvrir le réseau complet</button></p>`:'<p class="muted small">Pas encore de liens.</p>';}
+  const rich=s=>s?`<div class="pre small">${richHTML(s,false)}</div>`:'';
+  switch(t){
+    case 'npc':{const n=S.npcs.find(x=>x.id===id);return `<div class="row" style="align-items:flex-start">${thumb('npc:'+id,'bthumb')}<div><div class="small muted">${esc(e.sub||'')}</div><div class="crstats" style="margin:.3rem 0"><span><b>${esc(n.ac||'?')}</b>CA</span><span><b>${esc(n.hp||'?')}</b>PV</span></div></div></div>${rich(n.actions)}${rich(n.desc)}`;}
+    case 'note':{const n=S.notes.find(x=>x.id===id);return rich(n.text)||'<p class="muted small">Note vide.</p>';}
+    case 'quest':{const q=S.quests.find(x=>x.id===id);return `<span class="kindtag qs-${QST.indexOf(q.status)}">${esc(q.status)}</span>${rich(q.text)}`;}
+    case 'lore':{const n=S.lore.find(x=>x.id===id);return `${thumb('lore:'+id,'bthumb')}<div class="small muted">${esc(n.kind||'')}</div>${rich(n.text)}`;}
+    case 'video':{const x=S.videos.find(v=>v.id===id);return `<button class="ytcard" data-act="video-pop" data-id="${x.id}" aria-label="Lire">${vidThumb(x,'ytbig')}<span class="ytplay" aria-hidden="true">▶</span></button>${x.notes?rich(x.notes):''}`;}
+    case 'item':{const i=ITEMS.get(id);return `<div class="row" style="align-items:flex-start">${thumb('item:'+id,'bthumb')}<div><div class="rar small" style="${rc(i.rarity)}">${esc((RAR[i.rarity]||{}).n||'')}, ${esc(i.cat)}</div><div class="small">${i.w?weaponLine(i.w):i.a?'CA '+(i.a.base??'?'):''}</div><div class="small">${esc(bonusLine(effB(i)))}</div></div></div>${i.source?`<p class="small muted" style="margin:.3rem 0 0">📍 ${esc(i.source)}</p>`:''}`;}
+    case 'spell':{const x=SPELLS.get(id);return `<div class="small">${lvlLabel(x.level)}, ${esc(x.school||'')}</div><div class="small">${spellDmgLine(x)}</div>${x.desc?`<p class="small muted">${esc(x.desc.slice(0,260))}</p>`:''}`;}
+    case 'build':{const b=S.builds.find(x=>x.id===id);const D=derive(b);return `<div class="row" style="align-items:flex-start">${thumb('build:'+id,'bthumb')}<div class="small muted">${esc(e.sub||'')}</div></div><div class="crstats" style="margin:.4rem 0"><span><b>${D.hp}</b>PV</span><span><b>${D.ac}</b>CA</span><span><b>${sgn(D.init)}</b>Init.</span><span><b>${CORE_SLOTS.filter(s=>D.eq[s]).length}/${CORE_SLOTS.length}</b>Équip.</span></div>${D.attacks.slice(0,2).map(a=>`<div class="small">⚔️ ${esc(a.name)} : ${sgn(a.toHit)}, ${esc(a.dice)}${a.flat?sgn(a.flat):''}</div>`).join('')}`;}
+    case 'marker':{const f=findMarker(id);return `<div class="small muted">${esc(f.m.name)}</div>${rich(f.k.text)}`;}
+    case 'map':return `<div class="small muted">${esc(e.sub||'')}</div>`;
+  }
+  return '';
+}
+function cardHTML(c){
+  const e=c.type==='sticky'?null:ent(c.ref);const t=c.type==='sticky'?'sticky':c.type==='graph'?'graph':(e?e.t:'note');
+  const title=c.type==='sticky'?'Post-it':e?(c.type==='graph'?'Réseau : '+e.name:e.name):'Élément supprimé';
+  const icon=c.type==='sticky'?'🗒️':c.type==='graph'?'🕸️':e?e.icon:'❔';
+  return `<div class="bcard bc-${t}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--gc:var(--gc-${t==='sticky'?'quest':t==='graph'?'npc':t});${c.type==='sticky'?`--sticky:${c.color||'#f5d76e'}`:''}">
+    <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${icon}</span><span class="bt">${esc(title)}</span>
+      ${c.type==='sticky'?`<span class="bcolors">${['#f5d76e','#ff9db0','#9fe2bf','#a8c8ff','#d7b8ff'].map(col=>`<button class="bcol" data-act="sticky-color" data-cid="${c.id}" data-c="${col}" style="background:${col}" aria-label="Couleur"></button>`).join('')}</span>`:''}
+      ${e?`<button class="bbtn" data-act="ref-open" data-ref="${esc(c.ref)}" title="Ouvrir la fiche" aria-label="Ouvrir la fiche">↗</button>`:''}
+      <button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
+    <div class="bbody">${cardBody(c)}</div>
+    <span class="bresize" data-resize="${c.id}" title="Redimensionner" aria-hidden="true"></span></div>`;
+}
+function strokeD(s){
+  const p=s.pts;if(!p.length)return '';
+  if(s.kind==='arrow'){const [x1,y1]=p[0],[x2,y2]=p[p.length-1];const a=Math.atan2(y2-y1,x2-x1),L=12+s.w*2.2;
+    const h1=[x2-L*Math.cos(a-0.45),y2-L*Math.sin(a-0.45)],h2=[x2-L*Math.cos(a+0.45),y2-L*Math.sin(a+0.45)];
+    return `M${x1},${y1} L${x2},${y2} M${h1[0]},${h1[1]} L${x2},${y2} L${h2[0]},${h2[1]}`;}
+  return 'M'+p.map(q=>q[0]+','+q[1]).join(' L');
+}
+function boardSize(){let W=2200,H=1500;for(const c of S.board.cards){W=Math.max(W,c.x+c.w+400);H=Math.max(H,c.y+c.h+400);}for(const s of S.board.strokes)for(const [x,y] of s.pts){W=Math.max(W,x+300);H=Math.max(H,y+300);}return [W,H];}
+function renderStrokes(){const svg=$('#bdraw');if(!svg)return;svg.innerHTML=S.board.strokes.map(s=>`<path data-sid="${s.id}" d="${strokeD(s)}" stroke="${s.color}" stroke-width="${s.w}"/>`).join('');}
+function renderAccueil(){
+  if(!S.board.cards.length&&!S.board.strokes.length&&!S.board.seeded){S.board.seeded=true;S.board.cards.push({id:uid(),type:'sticky',x:40,y:40,w:330,h:230,color:'#f5d76e',text:'Bienvenue sur ton tableau !\n\n• « 📌 Épingler » sur n’importe quelle fiche (PNJ, note, vidéo, objet, personnage, quête) l’ajoute ici.\n• Glisse les cartes par leur titre, agrandis-les par le coin.\n• Crayon et flèche pour annoter, gomme pour effacer.'});Store.touch('board');}
+  const z=S.board.z||1;const [W,H]=boardSize();
+  $('#v-accueil').innerHTML=`
+  <div class="boardbar">
+    <div class="seg" role="group" aria-label="Outil">${[['move','🖐 Déplacer'],['pen','✏️ Crayon'],['arrow','➚ Flèche'],['erase','🧽 Gomme']].map(([k,n])=>`<button data-act="board-mode" data-k="${k}" aria-pressed="${BV2.mode===k}">${n}</button>`).join('')}</div>
+    <span class="pens">${PENCOLORS.map(c=>`<button class="pen${BV2.color===c?' on':''}" data-act="board-color" data-c="${c}" style="background:${c}" aria-label="Couleur ${c}"></button>`).join('')}</span>
+    <select id="b-width" aria-label="Épaisseur">${[[3,'Fin'],[5,'Moyen'],[10,'Épais']].map(([v,n])=>opt(v,n,BV2.width)).join('')}</select>
+    <span style="flex:1"></span>
+    <button class="primary" data-act="board-add">📌 Épingler…</button>
+    <button data-act="board-sticky">🗒️ Post-it</button>
+    <span class="seg"><button data-act="board-zoom" data-z="-1" aria-label="Dézoomer">−</button><button disabled style="opacity:1;cursor:default">${Math.round(z*100)}\u202f%</button><button data-act="board-zoom" data-z="1" aria-label="Zoomer">+</button></span>
+    <button class="danger" data-act="board-clear-draw"${S.board.strokes.length?'':' disabled'}>Effacer le dessin</button>
+  </div>
+  <div class="boardwrap" id="boardwrap"><div class="bsizer" style="width:${W*z}px;height:${H*z}px">
+    <div class="board mode-${BV2.mode}" id="board" style="width:${W}px;height:${H}px;transform:scale(${z})">
+      ${S.board.cards.map(cardHTML).join('')}
+      <svg class="bdraw" id="bdraw" width="${W}" height="${H}" aria-hidden="true"></svg>
+    </div></div></div>`;
+  renderStrokes();fixYtThumbs($('#board'));attachBoard();
+}
+function attachBoard(){
+  const board=$('#board');if(!board)return;const z=()=>S.board.z||1;
+  const pt=e=>{const r=board.getBoundingClientRect();return [Math.round((e.clientX-r.left)/z()),Math.round((e.clientY-r.top)/z())];};
+  let op=null;let top=10;
+  board.addEventListener('pointerdown',e=>{
+    if(BV2.mode==='move'){
+      const rz=e.target.closest('[data-resize]');const hd=e.target.closest('.bhead');
+      if(!rz&&(!hd||e.target.closest('button')))return;
+      const el=(rz||hd).closest('.bcard');const c=S.board.cards.find(x=>x.id===el.dataset.cid);if(!c)return;
+      e.preventDefault();el.style.zIndex=++top+100;const [x,y]=pt(e);
+      op={kind:rz?'resize':'drag',c,el,x0:x,y0:y,cx:c.x,cy:c.y,cw:c.w,ch:c.h};board.setPointerCapture(e.pointerId);return;
+    }
+    const [x,y]=pt(e);e.preventDefault();board.setPointerCapture(e.pointerId);
+    if(BV2.mode==='erase'){op={kind:'erase'};eraseAt(x,y);return;}
+    const s={id:uid(),kind:BV2.mode==='arrow'?'arrow':'pen',color:BV2.color,w:BV2.width,pts:[[x,y]]};
+    S.board.strokes.push(s);op={kind:'draw',s};renderStrokes();
+  });
+  board.addEventListener('pointermove',e=>{
+    if(!op)return;const [x,y]=pt(e);
+    if(op.kind==='drag'){op.c.x=Math.max(0,op.cx+x-op.x0);op.c.y=Math.max(0,op.cy+y-op.y0);op.el.style.left=op.c.x+'px';op.el.style.top=op.c.y+'px';}
+    else if(op.kind==='resize'){op.c.w=Math.max(170,op.cw+x-op.x0);op.c.h=Math.max(110,op.ch+y-op.y0);op.el.style.width=op.c.w+'px';op.el.style.height=op.c.h+'px';}
+    else if(op.kind==='erase')eraseAt(x,y);
+    else if(op.kind==='draw'){const p=op.s.pts;if(op.s.kind==='arrow'){p[1]=[x,y];}else{const l=p[p.length-1];if(Math.hypot(x-l[0],y-l[1])>=3)p.push([x,y]);}
+      const path=$(`#bdraw path[data-sid="${op.s.id}"]`);if(path)path.setAttribute('d',strokeD(op.s));}
+  });
+  const end=()=>{if(!op)return;const k=op.kind;
+    if(k==='draw'&&op.s.pts.length<2)S.board.strokes=S.board.strokes.filter(s=>s!==op.s);
+    if(k==='drag'){const c=op.c;S.board.cards=S.board.cards.filter(x=>x!==c);S.board.cards.push(c);}
+    op=null;Store.touch('board');
+    if(k==='drag'||k==='resize'){const [W,H]=boardSize();const bz=S.board.z||1;const sz=$('.bsizer');if(sz){sz.style.width=W*bz+'px';sz.style.height=H*bz+'px';}board.style.width=W+'px';board.style.height=H+'px';const svg=$('#bdraw');svg.setAttribute('width',W);svg.setAttribute('height',H);}
+    if(k==='draw'||k==='erase'){const b=$('[data-act="board-clear-draw"]');if(b)b.disabled=!S.board.strokes.length;}
+  };
+  board.addEventListener('pointerup',end);board.addEventListener('pointercancel',end);
+}
+function eraseAt(x,y){
+  const r=14/(S.board.z||1);const dseg=(px,py,a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1];const L=dx*dx+dy*dy||1;let t=((px-a[0])*dx+(py-a[1])*dy)/L;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a[0]+t*dx),py-(a[1]+t*dy));};
+  const before=S.board.strokes.length;
+  S.board.strokes=S.board.strokes.filter(s=>{const p=s.pts;if(p.length===1)return Math.hypot(x-p[0][0],y-p[0][1])>r;for(let i=1;i<p.length;i++)if(dseg(x,y,p[i-1],p[i])<=r+s.w/2)return false;return true;});
+  if(S.board.strokes.length!==before)renderStrokes();
+}
+ACT['board-mode']=t=>{BV2.mode=t.dataset.k;$$('[data-act="board-mode"]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.k===BV2.mode));const b=$('#board');if(b)b.className='board mode-'+BV2.mode;};
+ACT['board-color']=t=>{BV2.color=t.dataset.c;$$('.pen').forEach(b=>b.classList.toggle('on',b.dataset.c===BV2.color));if(BV2.mode==='move'||BV2.mode==='erase')ACT['board-mode']({dataset:{k:'pen'}});};
+ACT['board-add']=()=>openPicker(r=>{closeDlg();pinRef(r);},{title:'Épingler sur l’accueil'});
+ACT['board-sticky']=()=>{const [x,y]=freeSpot(220,180);S.board.cards.push({id:uid(),type:'sticky',x,y,w:220,h:180,color:'#f5d76e',text:''});Store.touch('board');renderAccueil();setTimeout(()=>{const s=$$('.sticky');const last=s[s.length-1];if(last)last.focus();},30);};
+ACT['board-unpin']=t=>{S.board.cards=S.board.cards.filter(c=>c.id!==t.dataset.cid);Store.touch('board');renderAccueil();};
+ACT['board-zoom']=t=>{const Z=[0.5,0.67,0.8,1,1.25];const i=Z.indexOf(S.board.z||1);S.board.z=Z[clamp((i<0?3:i)+(+t.dataset.z),0,Z.length-1)];Store.touch('board');renderAccueil();};
+ACT['board-clear-draw']=()=>{if(!confirm('Effacer tous les dessins du tableau ? Les cartes restent.'))return;S.board.strokes=[];Store.touch('board');renderAccueil();};
+ACT['sticky-color']=t=>{const c=S.board.cards.find(x=>x.id===t.dataset.cid);if(!c)return;c.color=t.dataset.c;Store.touch('board');const el=$(`.bcard[data-cid="${c.id}"]`);if(el)el.style.setProperty('--sticky',c.color);};
+document.addEventListener('change',e=>{if(e.target.id==='b-width')BV2.width=+e.target.value;});
+const STK={};
+document.addEventListener('input',e=>{const el=e.target.closest&&e.target.closest('[data-sticky]');if(!el)return;const c=S.board.cards.find(x=>x.id===el.dataset.sticky);if(!c)return;clearTimeout(STK[c.id]);STK[c.id]=setTimeout(()=>{c.text=el.innerText;Store.touch('board');},300);});
+document.addEventListener('paste',e=>{const el=e.target.closest&&e.target.closest('[data-sticky]');if(!el)return;const t=e.clipboardData&&e.clipboardData.getData('text/plain');if(!t)return;e.preventDefault();e.stopImmediatePropagation();document.execCommand('insertText',false,t);},true);
 
 /* =========================================================
    DÉMARRAGE
