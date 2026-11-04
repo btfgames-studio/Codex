@@ -37,7 +37,7 @@
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 70px)}
+html{scroll-padding-top:calc(env(safe-area-inset-top,0px) + 16px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
 h1,h2,h3{font-family:var(--serif);font-weight:700;line-height:1.15;margin:0 0 .5em}
@@ -63,7 +63,7 @@ button[disabled]{opacity:.5;cursor:not-allowed}
 .hidden{display:none!important}
 
 /* header */
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top-unused{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;gap:1rem;padding:.5rem 1rem;max-width:1600px;margin:0 auto}
 .brand{display:flex;align-items:center;gap:.5rem;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:700;font-size:1.12rem;white-space:nowrap}
 .brand svg{width:28px;height:28px;color:var(--gold);flex:none}
@@ -239,7 +239,7 @@ code{background:var(--surface2);padding:0 .3em;border-radius:4px}
 .perso3{display:grid;grid-template-columns:150px minmax(0,1fr) minmax(320px,440px);gap:1rem;align-items:start}
 @media (max-width:1150px){.perso3{grid-template-columns:120px minmax(0,1fr)}.perso3>.sheet{grid-column:1/-1}}
 @media (max-width:700px){.perso3{grid-template-columns:1fr}.band{flex-direction:row!important;overflow-x:auto;position:static!important}}
-.band{display:flex;flex-direction:column;gap:.6rem;position:sticky;top:calc(env(safe-area-inset-top,0px) + 80px)}
+.band{display:flex;flex-direction:column;gap:.6rem;position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
 .bandbtn{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.8rem .4rem;border-radius:14px;border:2px solid var(--line);background:var(--surface2);font-weight:700;white-space:normal;text-align:center;min-width:100px}
 .bandbtn[aria-current="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .bandimg{width:52px;height:52px;border-radius:50%;object-fit:cover}
@@ -400,21 +400,82 @@ button.ref{padding:0 .2em;white-space:normal}
 .ghdiag{border:1px solid var(--line);border-radius:10px;padding:.5rem .8rem;margin:.6rem 0;background:var(--surface2)}
 .ghlog{list-style:none;padding:0;margin:0;max-height:9rem;overflow:auto}.ghlog li{padding:.15rem 0;border-bottom:1px dashed var(--line)}
 [hidden]{display:none!important}
+:root{--sw-c:68px;--sw-o:268px}
+body{padding-left:var(--sw-c);transition:padding-left .18s}
+body.sidepinned{padding-left:var(--sw-o)}
+.side{position:fixed;left:0;top:0;bottom:0;width:var(--sw-c);z-index:45;background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);transition:width .18s ease,box-shadow .18s}
+.side.exp{width:var(--sw-o);box-shadow:8px 0 30px rgba(0,0,0,.35)}
+body.sidepinned .side{box-shadow:none}
+.side .brand{display:flex;align-items:center;gap:.75rem;padding:1rem 1.15rem .7rem;text-decoration:none;color:var(--ink);font-family:var(--serif);font-weight:700;font-size:1.05rem;white-space:nowrap}
+.side .brand svg{width:30px;height:30px;flex:none;color:var(--gold)}
+.sl{opacity:0;transition:opacity .12s;white-space:nowrap}
+.side.exp .sl{opacity:1;transition-delay:.06s}
+.sbox{display:flex;align-items:center;gap:.6rem;margin:.3rem .7rem .5rem;padding:.45rem .7rem;border-radius:999px;background:var(--accent-soft);color:var(--ink);cursor:text;flex:none;border:1px solid transparent}
+.sbox:focus-within{border-color:var(--accent)}
+.sbox .si{width:20px;height:20px;flex:none}
+.sbox input{border:0;background:transparent;padding:0;min-width:0;flex:1;outline:none;color:var(--ink)}
+.side:not(.exp) .sbox input{width:0;padding:0}
+.sbox kbd{font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:4px;padding:0 .35em}
+.sidenav{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:.5rem}
+.sgroup{padding:.2rem 0 .3rem}
+.sgt{display:block;font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:.6rem 1.3rem .2rem;height:1.6rem}
+.side:not(.exp) .sgt{height:.6rem;padding:0;border-top:1px solid var(--line);margin:.5rem 1rem 0}
+.side:not(.exp) .sgroup:first-child .sgt{border-top:0}
+.sitem{display:flex;align-items:center;gap:1rem;padding:.55rem 1.2rem;color:var(--muted);text-decoration:none;white-space:nowrap;border-left:3px solid transparent;font-weight:500}
+.sitem:hover{color:var(--ink);background:var(--surface2)}
+.sitem[aria-current="page"]{color:var(--ink);background:var(--surface2);border-left-color:var(--accent)}
+.sitem[aria-current="page"] .si{color:var(--accent)}
+.si{width:24px;height:24px;flex:none}
+.sres{flex:1;overflow-y:auto;padding:0 .5rem .5rem}
+.sresh{padding:.2rem .5rem;margin:0}
+.sritem{display:flex;gap:.55rem;align-items:flex-start;width:100%;text-align:left;white-space:normal;background:transparent;border:0;border-left:3px solid transparent;border-radius:8px;padding:.45rem .5rem;margin:.1rem 0}
+.sritem:hover,.sritem.on{background:var(--surface2);border-left-color:var(--gc)}
+.sri{font-size:1.15rem;line-height:1.3}
+.srt b{display:block;font-weight:700;line-height:1.25}
+.srt small{display:block;color:var(--muted);font-size:.78rem}
+.srt .srs{color:var(--ink);opacity:.8;margin-top:.15rem}
+.sidefoot{display:flex;flex-direction:column;gap:.35rem;padding:.6rem .8rem .8rem;border-top:1px solid var(--line);white-space:nowrap}
+.sidefoot .ghbar{display:flex;gap:.3rem}
+.sidefoot .ghbar[hidden]{display:none}
+.sidefoot .sync{font-size:.75rem}
+.side:not(.exp) .sidefoot .sync,.side:not(.exp) .sidefoot [data-act="gh-settings"]{display:none}
+.side:not(.exp) #ghsave{width:42px;overflow:hidden;padding-left:.6rem;padding-right:0;text-align:left}
+.sidepin{align-self:flex-start;opacity:.6}
+body.sidepinned .sidepin{opacity:1}
+.mobbar{display:none}
+.sidescrim{display:none}
+@media (max-width:760px){
+  body,body.sidepinned{padding-left:0;padding-top:52px}
+  .mobbar{display:flex;align-items:center;gap:.6rem;position:fixed;top:0;left:0;right:0;height:52px;padding:0 .6rem;padding-top:env(safe-area-inset-top,0px);background:var(--surface);border-bottom:1px solid var(--line);z-index:40}
+  .mobbar button{font-size:1.4rem;padding:.1rem .6rem}
+  .mobbrand{font-family:var(--serif);font-weight:700;color:var(--ink);text-decoration:none}
+  .side{width:var(--sw-o);transform:translateX(-102%);transition:transform .2s}
+  .side.open{transform:none}
+  .sidescrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:44}
+  .sidescrim.on{display:block}
+  .sidepin{display:none}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<header class="top">
-  <div class="bar">
-    <a class="brand" href="#accueil" title="Accueil" aria-label="Codex de la Porte de Baldur, accueil">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2 7.5 9.5h9zM3 7l4.5 2.5L12 17l4.5-7.5L21 7M7.5 9.5 3 17M16.5 9.5 21 17M12 17v5M3 17h18"/></svg>
-      <span>Codex de la Porte de Baldur</span>
-    </a>
-    <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+<div id="mobbar" class="mobbar"><button class="ghost" data-act="side-toggle" aria-label="Ouvrir le menu">☰</button><a href="#accueil" class="mobbrand">Codex de la Porte de Baldur</a></div>
+<div id="sidescrim" class="sidescrim" data-act="side-close"></div>
+<aside id="side" class="side" aria-label="Navigation">
+  <a class="brand" href="#accueil" title="Accueil" aria-label="Codex de la Porte de Baldur, accueil">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 21 7v10l-9 5-9-5V7z"/><path d="M12 2 7.5 9.5h9zM3 7l4.5 2.5L12 17l4.5-7.5L21 7M7.5 9.5 3 17M16.5 9.5 21 17M12 17v5M3 17h18"/></svg>
+    <span class="sl">Codex de la Porte de Baldur</span>
+  </a>
+  <label class="sbox" title="Rechercher dans le codex ( / )"><svg class="si" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/></svg><input id="gsearch" type="search" placeholder="Rechercher dans le codex" autocomplete="off" aria-label="Rechercher dans tout le codex"><kbd class="sl">/</kbd></label>
+  <div id="sres" class="sres" hidden></div>
+  <nav id="sidenav" class="sidenav" aria-label="Sections"></nav>
+  <nav id="tabs" hidden></nav>
+  <div class="sidefoot">
     <span id="ghbar" class="ghbar" hidden><button class="small primary" id="ghsave" data-act="gh-save" title="Envoyer la sauvegarde sur GitHub">💾 Enregistrer</button><button class="small ghost" data-act="gh-settings" title="Réglages de synchronisation" aria-label="Réglages de synchronisation">⚙</button></span>
     <span class="sync" id="sync">Chargement…</span>
+    <button class="ghost small sidepin" data-act="side-pin" title="Garder le menu ouvert ou le replier" aria-label="Garder le menu ouvert ou le replier">📌</button>
   </div>
-</header>
+</aside>
 <main>
   <section class="view" id="v-accueil" hidden></section>
   <section class="view" id="v-glossaire" hidden></section>
@@ -4199,6 +4260,106 @@ async function loadLocalIcons(){
     if(!dlg().open&&['armes','equipements','sorts','pnj','personnage','accueil','sandbox'].includes(cur))renderCurrent();}catch(e){}
 }
 loadLocalIcons();
+
+/* =========================================================
+   VERSION 18 : BANDEAU LATÉRAL ET RECHERCHE GLOBALE
+   ========================================================= */
+const ICO={
+  accueil:'<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 21h10"/><circle cx="9" cy="9" r="1.6"/><path d="M13 8h4M13 11h4M7 14h10"/>',
+  personnage:'<path d="M5.5 14a6.5 6.5 0 0 1 13 0v6h-13z"/><path d="M5.5 14h13M10 14v6M14 14v6"/><path d="M12 7.5V4c2-1.5 4-1.2 5.5 0"/>',
+  sandbox:'<path d="M12 2.5 20.5 7.3v9.4L12 21.5l-8.5-4.8V7.3z"/><path d="M12 7l4.6 8.2H7.4z"/><path d="M3.5 7.3 12 7l8.5.3M7.4 15.2 3.5 16.7M16.6 15.2l3.9 1.5M12 7V2.5"/>',
+  armes:'<path d="M14.5 3.5H20.5V9.5L10 20l-2-2-2 2-2-2 2-2-2-2z"/><path d="M14 10l-4 4"/>',
+  equipements:'<path d="M8 3.5 12 6l4-2.5 4 3-1.5 5V19l-6.5 2-6.5-2v-7.5L4 6.5z"/><path d="M12 6v15M8 11h8"/>',
+  sorts:'<path d="M4 20 13.5 10.5"/><path d="M16.5 2.5l1.2 3 3 1.2-3 1.2-1.2 3-1.2-3-3-1.2 3-1.2z"/><path d="M7 4.5v2M6 5.5h2M19.5 15v2M18.5 16h2"/>',
+  biblio:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/><path d="M9 7h7M9 10.5h5"/>',
+  cartes:'<path d="M3 6.5 9 4l6 2.5L21 4v13.5L15 20l-6-2.5L3 20z"/><path d="M9 4v13.5M15 6.5V20"/><path d="M5.5 10.5l1.5 1.5M7 10.5 5.5 12"/>',
+  carnet:'<path d="M20.5 3.5c-7 .8-12 5.8-13 12.5L5 20.5l4.2-2.6c6.8-1 11.3-6.6 11.3-14.4z"/><path d="M7.5 16 14 9.5"/>',
+  quetes:'<path d="M6.5 4H18a2 2 0 0 1 2 2v1.5h-3.5"/><path d="M6.5 4A2.5 2.5 0 0 0 4 6.5V18a2.5 2.5 0 0 0 2.5 2.5h9A2.5 2.5 0 0 0 18 18V6"/><path d="M11 9v4.5M11 16.5v.3"/>',
+  reseau:'<circle cx="6" cy="6.5" r="2.3"/><circle cx="18" cy="9" r="2.3"/><circle cx="9" cy="18" r="2.3"/><path d="M8.2 7.2 15.8 8.4M7 8.7 8.3 15.8M16.3 10.7 10.8 16.4"/>',
+  pnj:'<path d="M6.5 11.5a5.5 5.5 0 0 1 11 0v1.5h-11z"/><path d="M9 9.5h.01M15 9.5h.01"/><path d="M8.5 13c0 3-1 5.2-2.5 7.5M11 13c0 3-.3 5.5-1 8M13 13c0 3 .3 5.5 1 8M15.5 13c0 3 1 5.2 2.5 7.5"/>',
+  youtube:'<rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10 9.3v5.4l4.6-2.7z" fill="currentColor"/>',
+  search:'<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5.5 5.5"/>'
+};
+const svgI=(k,cls='si')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]||''}</svg>`;
+const NAV=[
+  ['Mon aventure',[['accueil','Accueil','accueil'],['personnage','Personnages','personnage'],['sandbox','Bac à sable','sandbox']]],
+  ['Savoir',[['armes','Armes','armes'],['equipements','Équipements','equipements'],['sorts','Sorts','sorts'],['biblio','Bibliothèque','biblio'],['pnj','PNJ & monstres','pnj']]],
+  ['Carnet de route',[['cartes','Cartes','cartes'],['carnet','Carnet','carnet'],['quetes','Quêtes','quetes'],['reseau','Réseau','reseau'],['youtube','YouTube','youtube']]]
+];
+function renderSideNav(){
+  const n=$('#sidenav');if(!n)return;
+  n.innerHTML=NAV.map(([g,items])=>`<div class="sgroup"><span class="sgt sl">${g}</span>${items.map(([id,label,ic])=>`<a class="sitem" href="#${id}"${id===cur?' aria-current="page"':''} title="${label}">${svgI(ic)}<span class="sl">${label}</span></a>`).join('')}</div>`).join('');
+}
+function route(){
+  let v=(location.hash||'').slice(1);if(v==='glossaire')v='armes';
+  cur=v==='accueil'||VIEWS.some(x=>x[0]===v)?v:'accueil';
+  renderSideNav();sideClose();
+  $$('main .view').forEach(sec=>{const on=sec.id==='v-'+cur;sec.hidden=!on;if(!on)sec.innerHTML='';});
+  hidePop();renderCurrent();
+}
+/* ouverture / fermeture */
+const side=()=>$('#side');
+const canHover=window.matchMedia&&matchMedia('(hover: hover) and (min-width: 761px)').matches;
+function sideExpand(on){const s=side();if(!s)return;s.classList.toggle('exp',!!on||document.body.classList.contains('sidepinned'));}
+function sideOpenMobile(){const s=side();s.classList.add('open','exp');$('#sidescrim').classList.add('on');}
+function sideClose(){const s=side();if(!s)return;if(s.classList.contains('open')){s.classList.remove('open');$('#sidescrim').classList.remove('on');}if(!s.matches(':hover')&&!s.contains(document.activeElement))sideExpand(false);}
+ACT['side-toggle']=()=>{side().classList.contains('open')?sideClose():sideOpenMobile();};
+ACT['side-close']=()=>sideClose();
+ACT['side-pin']=()=>{const on=!document.body.classList.contains('sidepinned');document.body.classList.toggle('sidepinned',on);localStorage.setItem('bg3codex:sidepin',on?'1':'');sideExpand(on);toast(on?'Menu gardé ouvert.':'Menu replié : il s’ouvre au passage de la souris.');if(cur==='reseau')setTimeout(drawGraph,220);};
+function sideInit(){
+  const s=side();if(!s)return;
+  if(localStorage.getItem('bg3codex:sidepin'))document.body.classList.add('sidepinned');
+  sideExpand(false);
+  let t=null;
+  if(canHover){s.addEventListener('mouseenter',()=>{clearTimeout(t);sideExpand(true);});s.addEventListener('mouseleave',()=>{t=setTimeout(()=>{if(!s.contains(document.activeElement)||document.activeElement===document.body)sideExpand(false);},120);});}
+  s.addEventListener('focusin',()=>sideExpand(true));
+  s.addEventListener('focusout',()=>setTimeout(()=>{if(!s.contains(document.activeElement)&&!s.matches(':hover'))sideExpand(false);},50));
+}
+
+/* ---------- recherche globale ---------- */
+const SRV={sel:0,list:[]};
+function snippet(text,words){const t=stripTok(text).replace(/\s+/g,' ');const n=norm(t);let i=-1;for(const w of words){i=n.indexOf(w);if(i>=0)break;}if(i<0)return '';const a=Math.max(0,i-40);return (a?'…':'')+t.slice(a,a+120)+(a+120<t.length?'…':'');}
+function searchAll(q){
+  const words=norm(q).split(/\s+/).filter(Boolean);if(!words.length)return[];
+  const out=[];const seen=new Set();
+  const push=(ref,score,snip)=>{if(seen.has(ref))return;const e=ent(ref);if(!e)return;seen.add(ref);out.push({e,score,snip});};
+  if(!SRV.cache){SRV.cache=allEntities().map(e=>[e,norm(e.name+' '+(e.sub||''))]);}
+  for(const [e,n] of SRV.cache){if(words.every(w=>n.includes(w)))push(e.ref,norm(e.name).startsWith(words[0])?0:1,'');}
+  const texts=[];
+  S.notes.forEach(x=>texts.push(['note:'+x.id,x.title+' '+(x.tags||[]).join(' ')+' '+x.text,x.text]));
+  S.quests.forEach(x=>texts.push(['quest:'+x.id,x.title+' '+x.text,x.text]));
+  S.lore.forEach(x=>texts.push(['lore:'+x.id,x.title+' '+x.place+' '+x.text,x.text]));
+  S.videos.forEach(x=>texts.push(['video:'+x.id,x.title+' '+x.place+' '+x.notes,x.notes]));
+  S.maps.forEach(m=>m.markers.forEach(k=>texts.push(['marker:'+k.id,k.title+' '+k.text,k.text])));
+  S.npcs.forEach(x=>{if(x.actions||(x.desc&&!x.wiki))texts.push(['npc:'+x.id,x.name+' '+x.desc+' '+(x.actions||''),(x.actions||'')+' '+x.desc]);});
+  S.customItems.forEach(x=>{if(x.source||x.desc)texts.push(['item:'+x.id,x.name+' '+(x.source||'')+' '+(x.desc||''),(x.source||'')+' '+(x.desc||'')]);});
+  for(const [ref,hay,shown] of texts){if(seen.has(ref))continue;const n=norm(stripTok(hay));if(words.every(w=>n.includes(w)))push(ref,2,snippet(shown,words));}
+  out.sort((a,b)=>a.score-b.score||ETORDER.indexOf(a.e.t)-ETORDER.indexOf(b.e.t)||a.e.name.localeCompare(b.e.name,'fr'));
+  return out;
+}
+function renderSearch(){
+  const inp=$('#gsearch'),box=$('#sres'),nav=$('#sidenav');if(!inp)return;const q=inp.value.trim();
+  if(!q){box.hidden=true;nav.hidden=false;return;}
+  const L=searchAll(q);SRV.list=L.slice(0,60);SRV.sel=0;nav.hidden=true;box.hidden=false;
+  box.innerHTML=SRV.list.length?`<p class="small muted sresh">${L.length} résultat${L.length>1?'s':''}</p>`+SRV.list.map((r,i)=>`<button class="sritem${i===0?' on':''}" data-act="gs-open" data-ref="${esc(r.e.ref)}" style="--gc:var(--gc-${r.e.t})"><span class="sri">${r.e.icon}</span><span class="srt"><b>${esc(r.e.name)}</b><small>${esc(ETYPE[r.e.t][1])}${r.e.sub?', '+esc(r.e.sub):''}</small>${r.snip?`<small class="srs">${esc(r.snip)}</small>`:''}</span></button>`).join('')+(L.length>60?`<p class="small muted sresh">Précise ta recherche pour voir les ${L.length-60} autres.</p>`:''):`<p class="small muted sresh">Rien trouvé pour « ${esc(q)} ».</p>`;
+}
+ACT['gs-open']=t=>{const inp=$('#gsearch');inp.value='';renderSearch();inp.blur();sideClose();sideExpand(false);openRef(t.dataset.ref);};
+let GST=null;document.addEventListener('input',e=>{if(e.target.id==='gsearch'){clearTimeout(GST);GST=setTimeout(renderSearch,140);}});
+{const t1=Store.touch;Store.touch=function(k){SRV.cache=null;t1.call(this,k);};}
+document.addEventListener('keydown',e=>{
+  if(e.target.id==='gsearch'){
+    const items=$$('#sres .sritem');
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();if(!items.length)return;SRV.sel=(SRV.sel+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items.forEach((b,i)=>b.classList.toggle('on',i===SRV.sel));items[SRV.sel].scrollIntoView({block:'nearest'});}
+    if(e.key==='Enter'){e.preventDefault();if(items[SRV.sel])items[SRV.sel].click();}
+    if(e.key==='Escape'){e.target.value='';renderSearch();e.target.blur();}
+    return;
+  }
+  const typing=e.target.isContentEditable||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
+  if((e.key==='/'&&!typing)||((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'&&!(e.target.closest&&e.target.closest('.rich')))){
+    if(dlg().open)return;e.preventDefault();const s=side();if(window.innerWidth<=760)sideOpenMobile();sideExpand(true);$('#gsearch').focus();
+  }
+});
+sideInit();
 
 /* =========================================================
    DÉMARRAGE
