@@ -455,6 +455,9 @@ body.sidepinned .sidepin{opacity:1}
   .sidescrim.on{display:block}
   .sidepin{display:none}
 }
+th button.thsort{display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;color:inherit;font:inherit;padding:0;white-space:nowrap}
+th button.thsort:hover,th button.thsort.on{color:var(--ink)}
+.sarrow{font-size:.7rem;opacity:.45}.thsort.on .sarrow{opacity:1;color:var(--accent)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -1191,7 +1194,7 @@ function renderGloss(){
     <label>Acte<select id="g-act">${opt('','Tous',G.act)}${[0,1,2,3].map(a=>opt(a,actLabel(a),G.act)).join('')}${opt('?','À préciser',G.act)}</select></label>
     <label>Rareté<select id="g-rar">${opt('','Toutes',G.rar)}${Object.entries(RAR).map(([k,r])=>opt(k,r.n,G.rar)).join('')}</select></label>
     <label>Marchand ou lieu<select id="g-src">${opt('','Tous',G.src)}${srcs.map(s=>opt(s,s,G.src)).join('')}</select></label>
-    <label>Trier par<select id="g-sort">${[['name','Nom'],['price','Prix'],['rarity','Rareté'],['act','Acte'],['cat','Catégorie']].map(([k,n])=>opt(k,n,G.sort)).join('')}</select></label>
+    <label>Trier par<select id="g-sort">${[['name','Nom'],['cat',G.kind==='armes'?'Famille':'Catégorie'],['eff',G.kind==='armes'?'Dégâts':'Effet'],['rarity','Rareté'],['act','Acte'],['src','Où le trouver'],['price','Prix']].map(([k,n])=>opt(k,n,G.sort)).join('')}</select></label>
     <button data-act="g-dir" aria-label="Inverser l’ordre">${G.dir>0?'↑ Croissant':'↓ Décroissant'}</button>
     <span style="flex:1"></span>
     <button class="primary" data-act="item-new">Ajouter un objet</button>
@@ -2388,14 +2391,14 @@ function renderItems(kind){
     <label>Acte<select id="g-act">${opt('','Tous',G.act)}${[0,1,2,3].map(a=>opt(a,actLabel(a),G.act)).join('')}${opt('?','À préciser',G.act)}</select></label>
     <label>Rareté<select id="g-rar">${opt('','Toutes',G.rar)}${Object.entries(RAR).map(([k,r])=>opt(k,r.n,G.rar)).join('')}</select></label>
     <label>Marchand ou lieu<select id="g-src">${opt('','Tous',G.src)}${srcs.map(s=>opt(s,s,G.src)).join('')}</select></label>
-    <label>Trier par<select id="g-sort">${[['name','Nom'],['price','Prix'],['rarity','Rareté'],['act','Acte'],['cat','Catégorie']].map(([k,n])=>opt(k,n,G.sort)).join('')}</select></label>
+    <label>Trier par<select id="g-sort">${[['name','Nom'],['cat',G.kind==='armes'?'Famille':'Catégorie'],['eff',G.kind==='armes'?'Dégâts':'Effet'],['rarity','Rareté'],['act','Acte'],['src','Où le trouver'],['price','Prix']].map(([k,n])=>opt(k,n,G.sort)).join('')}</select></label>
     <button data-act="g-dir" aria-label="Inverser l’ordre">${G.dir>0?'↑ Croissant':'↓ Décroissant'}</button>
     <span style="flex:1"></span>
     <button class="primary" data-act="item-new">Ajouter</button>
     <button data-act="data-io">Importer depuis bg3.wiki</button>
   </div>
   ${hideBar()}<p class="small muted" id="g-count"></p>
-  <div class="tablewrap"><table><thead><tr><th>Nom</th><th>${isW?'Famille':'Catégorie'}</th><th>${isW?'Dégâts':'Effet'}</th><th>Rareté</th><th>Acte</th><th>Où le trouver</th><th>Prix</th></tr></thead><tbody id="g-body"></tbody></table></div>`;
+  <div class="tablewrap"><table><thead><tr>${[['name','Nom'],['cat',isW?'Famille':'Catégorie'],['eff',isW?'Dégâts':'Effet'],['rarity','Rareté'],['act','Acte'],['src','Où le trouver'],['price','Prix']].map(([k,n])=>`<th aria-sort="${G.sort===k?(G.dir>0?'ascending':'descending'):'none'}"><button class="thsort${G.sort===k?' on':''}" data-act="g-sort" data-k="${k}" title="Trier par ${n.toLowerCase()}">${n}<span class="sarrow" aria-hidden="true">${G.sort===k?(G.dir>0?'▲':'▼'):'↕'}</span></button></th>`).join('')}</tr></thead><tbody id="g-body"></tbody></table></div>`;
   renderGlossBody();
 }
 function glossFiltered(){
@@ -2404,8 +2407,8 @@ function glossFiltered(){
     (!G.cat||i.cat===G.cat)&&(!G.grp||(i.w&&i.w.group===G.grp))&&(!G.rng||(i.w&&(G.rng==='r')===!!i.w.ranged))&&
     (G.act===''||(G.act==='?'?(i.act==null||i.act===''):(i.act!=null&&i.act!==''&&String(+i.act||0)===G.act)))&&(!G.rar||i.rarity===G.rar)&&(!G.src||i.source===G.src)&&
     (!q||[i.name,i.en,i.desc,i.source,i.cat].some(x=>String(x||'').toLowerCase().includes(q))));
-  const key={name:i=>i.name.toLowerCase(),price:i=>i.price==null?Infinity:+i.price,rarity:i=>(RAR[i.rarity]||{o:0}).o,act:i=>(i.act==null||i.act==='')?9:(+i.act||0),cat:i=>CATS.indexOf(i.cat)}[G.sort];
-  list.sort((a,b)=>{const x=key(a),y=key(b);const r=typeof x==='string'?x.localeCompare(y,'fr'):(x-y);return (r||a.name.localeCompare(b.name,'fr'))*G.dir;});
+  const SK={name:i=>norm(i.name),price:i=>i.price==null?null:+i.price,rarity:i=>i.rarity==='histoire'?0.5:(RAR[i.rarity]||{o:0}).o,act:i=>(i.act==null||i.act==='')?null:(+i.act||0),cat:i=>isW?norm(WGROUPS[i.w&&i.w.group]||''):norm(i.cat),grp:i=>norm(WGROUPS[i.w&&i.w.group]||''),src:i=>i.source?norm(i.source):null,eff:i=>isW?(i.w?parseDice(i.w.dice).dice.reduce((s,[n,d])=>s+n*(d+1)/2,0)+(+i.w.enchant||0):null):(i.a&&i.a.base!=null?+i.a.base:(bonusLine(effB(i))?norm(bonusLine(effB(i))):null))};const key=SK[G.sort]||SK.name;
+  list.sort((a,b)=>{const x=key(a),y=key(b);if(x==null&&y==null)return a.name.localeCompare(b.name,'fr');if(x==null)return 1;if(y==null)return -1;const r=typeof x==='string'||typeof y==='string'?String(x).localeCompare(String(y),'fr'):(x-y);return (r||a.name.localeCompare(b.name,'fr'))*G.dir;});
   return list;
 }
 function renderGlossBody(){
@@ -4361,6 +4364,7 @@ document.addEventListener('keydown',e=>{
 });
 sideInit();
 
+ACT['g-sort']=t=>{const k=t.dataset.k;if(G.sort===k)G.dir*=-1;else{G.sort=k;G.dir=['price','rarity','eff'].includes(k)?-1:1;}if(GV[G.kind])Object.assign(GV[G.kind],{sort:G.sort,dir:G.dir});const y=window.scrollY;renderItems(G.kind||'armes');window.scrollTo(0,y);};
 /* =========================================================
    DÉMARRAGE
    ========================================================= */
