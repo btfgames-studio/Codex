@@ -4101,7 +4101,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='14';
+const APP_VERSION='17';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -4152,6 +4152,7 @@ function ghDiag(){
       <dt>Réglages GitHub</dt><dd>${c&&c.token?`✓ ${esc(c.owner)}/${esc(c.repo)}, appareil « ${esc(c.device||'sans nom')} »`:'✗ pas encore faits sur cet appareil'}</dd>
       <dt>Dernière synchro</dt><dd>${m.lastSync?esc(hhmm(m.lastSync)):'jamais'}</dd>
       <dt>Changements non envoyés</dt><dd>${m.dirty?'oui':'non'}</dd>
+      <dt>Images</dt><dd>${typeof LOCAL_ICONS!=='undefined'&&LOCAL_ICONS?'✓ '+Object.keys(LOCAL_ICONS).length+' icônes trouvées dans ton site':'✗ dossier icons introuvable sur ce site'}<br>${[...ITEMS.values()].filter(i=>i.icon||i.img).length} objets, ${[...SPELLS.values()].filter(i=>i.icon||i.img).length} sorts et ${S.npcs.filter(n=>n.img).length} PNJ connaissent le nom de leur image${S.prefs.wikiIcons===false?'<br>⚠ affichage des images coupé (case sous les filtres des Armes)':''}</dd>
       <dt>Contenu actuel</dt><dd>${S.customItems.length} objets importés, ${n('npcs')} PNJ, ${n('notes')} notes, ${n('quests')} quêtes, ${n('videos')} vidéos, ${S.board.cards.length} cartes sur l’accueil</dd>
     </dl>
     ${L.length?`<p class="small muted" style="margin:.4rem 0 .2rem">Journal :</p><ul class="ghlog small">${L.map(x=>`<li><span class="muted">${esc(hhmm(x.t))}</span> ${esc(x.msg)}</li>`).join('')}</ul>`:''}</div>`;
