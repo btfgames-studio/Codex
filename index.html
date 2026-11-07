@@ -458,6 +458,36 @@ body.sidepinned .sidepin{opacity:1}
 th button.thsort{display:inline-flex;align-items:center;gap:.35rem;cursor:pointer;color:inherit;font:inherit;padding:0;white-space:nowrap}
 th button.thsort:hover,th button.thsort.on{color:var(--ink)}
 .sarrow{font-size:.7rem;opacity:.45}.thsort.on .sarrow{opacity:1;color:var(--accent)}
+.eico{width:1.45em;height:1.45em;border-radius:50%;object-fit:cover;vertical-align:middle;background:#18122a;flex:none;display:inline-block}
+.eemo{display:inline-block;width:1.45em;text-align:center}
+.lchip .eico{width:1.6em;height:1.6em;margin:-.15em 0}
+.pki .eico,.sri .eico{width:2em;height:2em}
+.gi .eico{width:2.2em;height:2.2em}
+.bi .eico{width:1.5em;height:1.5em}
+.qrow{display:flex!important;gap:.6rem;align-items:center}
+.eico.qthumb{width:42px;height:42px;border-radius:8px}
+.eemo.qthumb{width:42px;font-size:1.4rem}
+.qhero{width:100%;max-height:220px;object-fit:cover;border-radius:12px}
+.gxbar{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-bottom:.7rem}
+.gxsearch{position:relative;flex:0 1 260px}
+.gxsearch input{width:100%;border-radius:999px;padding-left:.9rem}
+.gxsug{position:absolute;top:110%;left:0;right:0;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-height:50vh;overflow:auto;padding:.3rem}
+.gxchips{display:flex;flex-wrap:wrap;gap:.3rem}
+.gxchip{border:1.5px solid var(--gc);background:color-mix(in srgb,var(--gc) 16%,transparent);font-size:.82rem}
+.gxchip[aria-pressed="false"]{opacity:.35;background:transparent}
+.gxwrap{position:relative;height:calc(100vh - 150px);min-height:460px;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#07060c}
+#gxcanvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab;touch-action:none}
+.gxpanel{position:absolute;top:12px;right:12px;bottom:12px;width:min(340px,42%);overflow:auto;background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:14px}
+.gxzoom{position:absolute;left:12px;bottom:12px;display:flex;flex-direction:column;gap:.3rem}
+.gxzoom button{width:38px;height:38px;padding:0;border-radius:10px;background:color-mix(in srgb,var(--surface) 85%,transparent);font-size:1.1rem}
+.gxempty{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:360px;text-align:center;color:#ddd5f0;padding:1rem}
+.gxhead{display:flex;gap:.8rem;align-items:center}
+.gxhero{width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);flex:none}
+.gxemo{font-size:2.6rem;width:72px;text-align:center}
+.gxhelp{padding-left:1rem}.gxhelp li{margin:.2rem 0}
+.gxlinks{background:transparent;border:0;padding:0}
+.sritem.faint{opacity:.6}
+@media (max-width:760px){.gxpanel{top:auto;left:8px;right:8px;width:auto;max-height:45%}.gxwrap{height:calc(100vh - 190px)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -3083,7 +3113,7 @@ function linksPanel(ref){
     <div class="links-head"><h3>Liens <span class="lcount">${nb.length}</span></h3>
       <div class="row"><button class="small" data-act="pin" data-ref="${esc(ref)}" title="Épingler sur l’accueil">📌 Épingler</button><button class="small primary" data-act="link-add" data-ref="${esc(ref)}">+ Relier à…</button><button class="small" data-act="graph-open" data-ref="${esc(ref)}">Voir le réseau</button></div></div>
     ${groups.length?groups.map(([t,list])=>`<div class="lgroup"><span class="lgtitle">${ETYPE[t][0]} ${ETYPE[t][2]}</span><div class="lchips">${list.map(x=>{const rem=x.srcs.some(s=>s.kind!=='text'&&s.kind!=='sub');
-      return `<span class="lchip" style="--gc:var(--gc-${t})"><button data-act="ref-open" data-ref="${esc(x.ref)}" title="Ouvrir"><span aria-hidden="true">${x.e.icon}</span> ${esc(x.e.name)}${x.e.sub?`<small>${esc(x.e.sub)}</small>`:''}</button>${rem?`<button class="lx" data-act="link-del" data-a="${esc(ref)}" data-b="${esc(x.ref)}" aria-label="Retirer le lien avec ${esc(x.e.name)}" title="Retirer le lien">✕</button>`:`<span class="ltext" title="${x.srcs.some(s=>s.kind==='sub')?'Carte intérieure':'Lien écrit dans un texte : retire-le dans le texte'}">${x.srcs.some(s=>s.kind==='sub')?'🚪':'✎'}</span>`}</span>`;}).join('')}</div></div>`).join('')
+      return `<span class="lchip" style="--gc:var(--gc-${t})"><button data-act="ref-open" data-ref="${esc(x.ref)}" title="Ouvrir">${eIcon(x.e)} ${esc(x.e.name)}${x.e.sub?`<small>${esc(x.e.sub)}</small>`:''}</button>${rem?`<button class="lx" data-act="link-del" data-a="${esc(ref)}" data-b="${esc(x.ref)}" aria-label="Retirer le lien avec ${esc(x.e.name)}" title="Retirer le lien">✕</button>`:`<span class="ltext" title="${x.srcs.some(s=>s.kind==='sub')?'Carte intérieure':'Lien écrit dans un texte : retire-le dans le texte'}">${x.srcs.some(s=>s.kind==='sub')?'🚪':'✎'}</span>`}</span>`;}).join('')}</div></div>`).join('')
     :'<p class="small muted" style="margin:.3rem 0 0">Aucun lien pour l’instant. Clique sur « Relier à… », ou sélectionne un mot dans un texte puis « Lier la sélection ».</p>'}
   </section>`;
 }
@@ -3112,7 +3142,7 @@ function renderPick(){
   if(q)L=L.filter(e=>norm(e.name).includes(q)||norm(e.sub).includes(q));
   L.sort((a,b)=>{const sa=q&&norm(a.name).startsWith(q)?0:1,sb=q&&norm(b.name).startsWith(q)?0:1;return sa-sb||ETORDER.indexOf(a.t)-ETORDER.indexOf(b.t)||a.name.localeCompare(b.name,'fr');});
   const n=L.length;L=L.slice(0,80);
-  $('#pk-res').innerHTML=L.length?L.map(e=>`<button class="pkrow" data-act="pk-choose" data-ref="${esc(e.ref)}" style="--gc:var(--gc-${e.t})"><span class="pki">${e.icon}</span><span><b>${esc(e.name)}</b><small>${esc(ETYPE[e.t][1])}${e.sub?', '+esc(e.sub):''}</small></span></button>`).join('')+(n>80?`<p class="small muted">${n-80} autres résultats : précise ta recherche.</p>`:'')
+  $('#pk-res').innerHTML=L.length?L.map(e=>`<button class="pkrow" data-act="pk-choose" data-ref="${esc(e.ref)}" style="--gc:var(--gc-${e.t})"><span class="pki">${eIcon(e)}</span><span><b>${esc(e.name)}</b><small>${esc(ETYPE[e.t][1])}${e.sub?', '+esc(e.sub):''}</small></span></button>`).join('')+(n>80?`<p class="small muted">${n-80} autres résultats : précise ta recherche.</p>`:'')
     :'<p class="muted">Rien trouvé. Tu peux le créer avec les boutons ci-dessous.</p>';
 }
 document.addEventListener('input',e=>{if(e.target.id==='pk-search')renderPick();});
@@ -3369,10 +3399,10 @@ const GR={center:null,depth:2,hist:[]};
 function gcard(ref,center){
   const e=ent(ref);
   return `<div class="gcard${center?' center':''}" data-gref="${esc(ref)}" style="--gc:var(--gc-${e.t})">
-    <button class="gmain" data-act="${center?'ref-open':'graph-center'}" data-ref="${esc(ref)}" title="${center?'Ouvrir la fiche':'Mettre au centre'}"><span class="gi" aria-hidden="true">${e.icon}</span><span class="gtx"><b>${esc(e.name)}</b><small>${esc(ETYPE[e.t][1])}${e.sub?', '+esc(e.sub):''}</small></span></button>
+    <button class="gmain" data-act="${center?'ref-open':'graph-center'}" data-ref="${esc(ref)}" title="${center?'Ouvrir la fiche':'Mettre au centre'}"><span class="gi">${eIcon(e)}</span><span class="gtx"><b>${esc(e.name)}</b><small>${esc(ETYPE[e.t][1])}${e.sub?', '+esc(e.sub):''}</small></span></button>
     ${center?'':`<button class="gopen" data-act="ref-open" data-ref="${esc(ref)}" aria-label="Ouvrir la fiche de ${esc(e.name)}" title="Ouvrir la fiche">↗</button>`}</div>`;
 }
-function renderReseau(){
+function renderReseauTree(){
   const v=$('#v-reseau');const c=GR.center&&ent(GR.center);
   const head=`<h2>Réseau</h2>
   <p class="lead">Tout ce qui est relié à un élément, en arbre. Clique sur une carte pour la mettre au centre et suivre le fil, ou sur ↗ pour ouvrir sa fiche.</p>
@@ -3382,7 +3412,7 @@ function renderReseau(){
     <span class="legend small">${ETORDER.map(t=>`<span><i style="background:var(--gc-${t})"></i>${ETYPE[t][1]}</span>`).join('')}</span></div>`;
   if(!c){
     const A=adjacency();const top=[...A.entries()].filter(([r])=>ent(r)).sort((a,b)=>b[1].size-a[1].size).slice(0,16);
-    v.innerHTML=head+`<div class="panel"><h3>Les éléments les plus reliés</h3>${top.length?`<div class="gsugg">${top.map(([r,m])=>{const e=ent(r);return `<button class="pkrow" data-act="graph-center" data-ref="${esc(r)}" style="--gc:var(--gc-${e.t})"><span class="pki">${e.icon}</span><span><b>${esc(e.name)}</b><small>${m.size} lien${m.size>1?'s':''}</small></span></button>`;}).join('')}</div>`:'<p class="muted">Pas encore de liens. Ouvre une fiche (PNJ, quête, objet, note…) et clique sur « Relier à… ».</p>'}</div>`;
+    v.innerHTML=head+`<div class="panel"><h3>Les éléments les plus reliés</h3>${top.length?`<div class="gsugg">${top.map(([r,m])=>{const e=ent(r);return `<button class="pkrow" data-act="graph-center" data-ref="${esc(r)}" style="--gc:var(--gc-${e.t})"><span class="pki">${eIcon(e)}</span><span><b>${esc(e.name)}</b><small>${m.size} lien${m.size>1?'s':''}</small></span></button>`;}).join('')}</div>`:'<p class="muted">Pas encore de liens. Ouvre une fiche (PNJ, quête, objet, note…) et clique sur « Relier à… ».</p>'}</div>`;
     return;
   }
   const levels=[[GR.center]],parent={},seen=new Set([GR.center]),capped=[0];
@@ -3771,7 +3801,7 @@ function cardBody(c){
   const e=ent(c.ref);if(!e)return '<p class="muted small">Cet élément a été supprimé. Retire la carte avec ✕.</p>';
   const [t,id]=splitRef(c.ref);
   if(c.type==='graph'){const nb=neighbors(c.ref).sort((a,b)=>ETORDER.indexOf(a.e.t)-ETORDER.indexOf(b.e.t));
-    return nb.length?`<div class="lchips">${nb.slice(0,40).map(x=>`<span class="lchip" style="--gc:var(--gc-${x.e.t})"><button data-act="ref-open" data-ref="${esc(x.ref)}"><span aria-hidden="true">${x.e.icon}</span> ${esc(x.e.name)}</button></span>`).join('')}</div><p style="margin:.5rem 0 0"><button class="small" data-act="graph-open" data-ref="${esc(c.ref)}">Ouvrir le réseau complet</button></p>`:'<p class="muted small">Pas encore de liens.</p>';}
+    return nb.length?`<div class="lchips">${nb.slice(0,40).map(x=>`<span class="lchip" style="--gc:var(--gc-${x.e.t})"><button data-act="ref-open" data-ref="${esc(x.ref)}">${eIcon(x.e)} ${esc(x.e.name)}</button></span>`).join('')}</div><p style="margin:.5rem 0 0"><button class="small" data-act="graph-open" data-ref="${esc(c.ref)}">Ouvrir le réseau complet</button></p>`:'<p class="muted small">Pas encore de liens.</p>';}
   const rich=s=>s?`<div class="pre small">${richHTML(s,false)}</div>`:'';
   switch(t){
     case 'npc':{const n=S.npcs.find(x=>x.id===id);return `<div class="row" style="align-items:flex-start">${thumb('npc:'+id,'bthumb')}<div><div class="small muted">${esc(e.sub||'')}</div><div class="crstats" style="margin:.3rem 0"><span><b>${esc(n.ac||'?')}</b>CA</span><span><b>${esc(n.hp||'?')}</b>PV</span></div></div></div>${rich(n.actions)}${rich(n.desc)}`;}
@@ -3792,7 +3822,7 @@ function cardHTML(c){
   const title=c.type==='sticky'?'Post-it':e?(c.type==='graph'?'Réseau : '+e.name:e.name):'Élément supprimé';
   const icon=c.type==='sticky'?'🗒️':c.type==='graph'?'🕸️':e?e.icon:'❔';
   return `<div class="bcard bc-${t}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--gc:var(--gc-${t==='sticky'?'quest':t==='graph'?'npc':t});${c.type==='sticky'?`--sticky:${c.color||'#f5d76e'}`:''}">
-    <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${icon}</span><span class="bt">${esc(title)}</span>
+    <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${c.type!=='graph'&&e?eIcon(e):icon}</span><span class="bt">${esc(title)}</span>
       ${c.type==='sticky'?`<span class="bcolors">${['#f5d76e','#ff9db0','#9fe2bf','#a8c8ff','#d7b8ff'].map(col=>`<button class="bcol" data-act="sticky-color" data-cid="${c.id}" data-c="${col}" style="background:${col}" aria-label="Couleur"></button>`).join('')}</span>`:''}
       ${e?`<button class="bbtn" data-act="ref-open" data-ref="${esc(c.ref)}" title="Ouvrir la fiche" aria-label="Ouvrir la fiche">↗</button>`:''}
       <button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
@@ -3923,7 +3953,7 @@ function _cardHTMLpinned(c){
   const e=ent(c.ref);const t=c.type==='graph'?'graph':(e?e.t:'note');
   const title=e?(c.type==='graph'?'Réseau : '+e.name:e.name):'Élément supprimé';const icon=c.type==='graph'?'🕸️':e?e.icon:'❔';
   return `<div class="bcard bc-${t}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--gc:var(--gc-${t})">
-    <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${icon}</span><span class="bt">${esc(title)}</span>
+    <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${c.type!=='graph'&&e?eIcon(e):icon}</span><span class="bt">${esc(title)}</span>
       ${e?`<button class="bbtn" data-act="ref-open" data-ref="${esc(c.ref)}" title="Ouvrir la fiche" aria-label="Ouvrir la fiche">↗</button>`:''}
       <button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
     <div class="bbody">${cardBody(c)}</div>
@@ -4165,7 +4195,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='17';
+const APP_VERSION='19';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -4344,7 +4374,7 @@ function renderSearch(){
   const inp=$('#gsearch'),box=$('#sres'),nav=$('#sidenav');if(!inp)return;const q=inp.value.trim();
   if(!q){box.hidden=true;nav.hidden=false;return;}
   const L=searchAll(q);SRV.list=L.slice(0,60);SRV.sel=0;nav.hidden=true;box.hidden=false;
-  box.innerHTML=SRV.list.length?`<p class="small muted sresh">${L.length} résultat${L.length>1?'s':''}</p>`+SRV.list.map((r,i)=>`<button class="sritem${i===0?' on':''}" data-act="gs-open" data-ref="${esc(r.e.ref)}" style="--gc:var(--gc-${r.e.t})"><span class="sri">${r.e.icon}</span><span class="srt"><b>${esc(r.e.name)}</b><small>${esc(ETYPE[r.e.t][1])}${r.e.sub?', '+esc(r.e.sub):''}</small>${r.snip?`<small class="srs">${esc(r.snip)}</small>`:''}</span></button>`).join('')+(L.length>60?`<p class="small muted sresh">Précise ta recherche pour voir les ${L.length-60} autres.</p>`:''):`<p class="small muted sresh">Rien trouvé pour « ${esc(q)} ».</p>`;
+  box.innerHTML=SRV.list.length?`<p class="small muted sresh">${L.length} résultat${L.length>1?'s':''}</p>`+SRV.list.map((r,i)=>`<button class="sritem${i===0?' on':''}" data-act="gs-open" data-ref="${esc(r.e.ref)}" style="--gc:var(--gc-${r.e.t})"><span class="sri">${eIcon(r.e)}</span><span class="srt"><b>${esc(r.e.name)}</b><small>${esc(ETYPE[r.e.t][1])}${r.e.sub?', '+esc(r.e.sub):''}</small>${r.snip?`<small class="srs">${esc(r.snip)}</small>`:''}</span></button>`).join('')+(L.length>60?`<p class="small muted sresh">Précise ta recherche pour voir les ${L.length-60} autres.</p>`:''):`<p class="small muted sresh">Rien trouvé pour « ${esc(q)} ».</p>`;
 }
 ACT['gs-open']=t=>{const inp=$('#gsearch');inp.value='';renderSearch();inp.blur();sideClose();sideExpand(false);openRef(t.dataset.ref);};
 let GST=null;document.addEventListener('input',e=>{if(e.target.id==='gsearch'){clearTimeout(GST);GST=setTimeout(renderSearch,140);}});
@@ -4365,6 +4395,216 @@ document.addEventListener('keydown',e=>{
 sideInit();
 
 ACT['g-sort']=t=>{const k=t.dataset.k;if(G.sort===k)G.dir*=-1;else{G.sort=k;G.dir=['price','rarity','eff'].includes(k)?-1:1;}if(GV[G.kind])Object.assign(GV[G.kind],{sort:G.sort,dir:G.dir});const y=window.scrollY;renderItems(G.kind||'armes');window.scrollTo(0,y);};
+/* =========================================================
+   VERSION 19 : QUÊTES DU JEU, MINIATURES, GALAXIE
+   ========================================================= */
+const GAME_QUESTS={"q":[{"n":"Escape the Nautiloid","p":"Escape the Nautiloid","s":"Prologue","a":[1],"r":"Nautiloïde","i":"Prologue.webp"},{"n":"Rescue the Illithids' Captive","p":"Rescue the Illithids' Captive","s":"Prologue","a":[1],"r":"Nautiloïde","i":"Shadowheart_trapped.webp"},{"n":"Find a Cure","p":"Find a Cure","s":"Quête principale","a":[1,2],"r":"","i":"Chapter_1.webp"},{"n":"Find the Nightsong","p":"Find the Nightsong","s":"Quête principale","a":[1,2,3],"r":"","i":"Umbral_Gem_Statue_Quest.jpg"},{"n":"Gather Your Allies","p":"Gather Your Allies","s":"Quête principale","a":[1,2,3],"r":"","i":"High_Hall_Allies_Quest.jpg"},{"n":"Travel to Moonrise Towers","p":"Travel to Moonrise Towers","s":"Quête principale","a":[1,2],"r":"","i":"Chapter_2.webp"},{"n":"Daughter of Darkness","p":"Daughter of Darkness","s":"Compagnon","a":[1,2,3],"r":"","i":"Shadowheart_Mysterious_Wound_Quest.jpg"},{"n":"Our Fiery Friend","p":"Our Fiery Friend","s":"Compagnon","a":[1,2,3],"r":"","i":"Karlach_Infernal_Engine_Recruitment.jpg"},{"n":"The Blade of Frontiers","p":"The Blade of Frontiers","s":"Compagnon","a":[1,2,3],"r":"","i":"Wyll_Karlach_Head_Quest.jpg"},{"n":"The Githyanki Warrior","p":"The Githyanki Warrior","s":"Compagnon","a":[1,2,3],"r":"","i":"Free_Laezel_Quest.jpg"},{"n":"The High Harper","p":"The High Harper","s":"Compagnon","a":[3],"r":"","i":"High_Harper_Jaheira_Quest.jpg"},{"n":"The Pale Elf","p":"The Pale Elf","s":"Compagnon","a":[1,2,3],"r":"","i":"Astarion_Back_Scars_Quest.jpg"},{"n":"The Wizard of Waterdeep","p":"The Wizard of Waterdeep","s":"Compagnon","a":[1,2,3],"r":"","i":"Gale_Recruitment_Hand.jpg"},{"n":"A Familiar Face","p":"A Familiar Face","s":"Compagnon (sous-quête)","a":[1,3],"r":"","i":"Nocturne_Quest.jpg"},{"n":"Balthazar's Experiment","p":"Balthazar's Experiment","s":"Compagnon (sous-quête)","a":[2],"r":"","i":"Ritual-Circle.jpg"},{"n":"In Case of Death...","p":"In Case of Death...","s":"Compagnon (sous-quête)","a":[1,2,3],"r":"","i":"In_Case_of_Death.png"},{"n":"The Chosen of Shar","p":"The Chosen of Shar","s":"Compagnon (sous-quête)","a":[2],"r":"","i":"Shadowheart_Aylin_Quest.jpg"},{"n":"The Grand Duke","p":"The Grand Duke","s":"Compagnon (sous-quête)","a":[1,2,3],"r":"","i":"Gortash_Coronation_Quest.jpg"},{"n":"The Hellion's Heart","p":"The Hellion's Heart","s":"Compagnon (sous-quête)","a":[1,2,3],"r":"","i":"Hellion_Heart_Quest.jpg"},{"n":"Wyrmway","p":"Wyrmway","s":"Compagnon (sous-quête)","a":[3],"r":"","i":"Wyrmway.jpg"},{"n":"Deal with the Devil","p":"Deal with the Devil","s":"Personnelle","a":[3],"r":"","i":"Raphael_Deal_with_the_Devil.jpg"},{"n":"Discover the Artefact's Secrets","p":"Discover the Artefact's Secrets","s":"Personnelle","a":[1,2],"r":"","i":"Astral_Prism_Secrets_Quest.jpg"},{"n":"Discover the History of Prince Orpheus","p":"Discover the History of Prince Orpheus","s":"Personnelle","a":[1,2],"r":"","i":"Orpheus_Slate_Quest.jpg"},{"n":"Embrace Your Potential","p":"Embrace Your Potential","s":"Personnelle","a":[1,2,3],"r":"","i":"Embrace_Your_Potential_Tadpole_Quest.jpg"},{"n":"Escape the Deal","p":"Escape the Deal","s":"Personnelle","a":[3],"r":"","i":"Soul-Sworn_Contract_Quest.jpg"},{"n":"Free Orpheus","p":"Free Orpheus","s":"Personnelle","a":[3],"r":"","i":"Free_Orpheus_Quest.jpg"},{"n":"Fulfill the Deal","p":"Fulfill the Deal","s":"Personnelle","a":[3],"r":"","i":"Raphael_Astral_Prism.jpg"},{"n":"Help Kith'rak Voss","p":"Help Kith'rak Voss","s":"Personnelle","a":[1,2,3],"r":"","i":"Help_Kithrak_Voss_Quest.jpg"},{"n":"Help Your Protector","p":"Help Your Protector","s":"Personnelle","a":[3],"r":"","i":"Dream_Visitor_Identity_Revealed_Quest.jpg"},{"n":"Call of the Blood","p":"Call of the Blood","s":"Origine","a":[1,2,3],"r":"","i":"Astarion_Back_Scars_Quest.jpg"},{"n":"Forging a Heart","p":"Forging a Heart","s":"Origine","a":[1,2,3],"r":"","i":"Dammon_Karlach_Inspection.jpg"},{"n":"Open Your Scars","p":"Open Your Scars","s":"Origine","a":[2,3],"r":"","i":"Dark_Urge_Headshot.webp"},{"n":"Servant of None","p":"Servant of None","s":"Origine","a":[1,2,3],"r":"","i":"Hellion_Heart_Quest.jpg"},{"n":"The Prince of the Comet","p":"The Prince of the Comet (Quest)","s":"Origine","a":[2,3],"r":"","i":"Free_Orpheus_Quest.jpg"},{"n":"The Urge","p":"The Urge","s":"Origine","a":[1,2,3],"r":"","i":"TheDarkUrge.jpg"},{"n":"The Wizard of Waterdeep (Origine)","p":"The Wizard of Waterdeep (Origin)","s":"Origine","a":[1,2,3],"r":"","i":"Gale_Recruitment_Hand.jpg"},{"n":"Vlaakith's Will","p":"Vlaakith's Will","s":"Origine","a":[2,3],"r":"","i":"Vlaakith_Creche_Visitor_Quest.jpg"},{"n":"Explore the Ruins","p":"Explore the Ruins","s":"Acte 1","a":[1],"r":"Plage dévastée","i":"Explore_the_Ruins_Skull_Button_Quest.jpg"},{"n":"Free Lae'zel","p":"Free Lae'zel","s":"Acte 1","a":[1],"r":"Plage dévastée","i":"Free_Laezel_Quest.jpg"},{"n":"Find Doni","p":"Find Doni","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Find_Doni_Quest.jpg"},{"n":"Find Your Belongings","p":"Find Your Belongings","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Mattis_Find_Your_Belongings_Quest.jpg"},{"n":"Get Help from Healer Nettie","p":"Get Help from Healer Nettie","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Healer_Nettie_Quest.jpg"},{"n":"Investigate Kagha","p":"Investigate Kagha","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Investigate_Kagha_Quest.jpg"},{"n":"Investigate the Beach","p":"Investigate the Beach","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Investigate_the_Beach_Quest.jpg"},{"n":"Kill Kagha","p":"Kill Kagha","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Kill_Kagha_Quest.jpg"},{"n":"Raid the Emerald Grove","p":"Raid the Emerald Grove","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Raid_the_Grove_Quest.jpg"},{"n":"Return the Locket","p":"Return the Locket","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Return_the_Locket_Quest.jpg"},{"n":"Save Arabella","p":"Save Arabella","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Arabella_Quest.webp"},{"n":"Save the First Druid","p":"Save the First Druid","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Save_the_First_Druid_Quest.jpg"},{"n":"Save the Goblin Sazza","p":"Save the Goblin Sazza","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Sazza_Goblin_Cage_Quest.jpg"},{"n":"Save the Refugees","p":"Save the Refugees","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Idol_of_Silvanus_Location.jpg"},{"n":"Steal the Sacred Idol","p":"Steal the Sacred Idol","s":"Acte 1","a":[1],"r":"Bosquet d’Émeraude","i":"Mol_Steal_the_Idol_Quest.jpg"},{"n":"Destroy the Ancient Tome","p":"Destroy the Ancient Tome","s":"Acte 1","a":[1,2,3],"r":"Village abandonné","i":"Search_the_Cellar_Book_Quest.jpg"},{"n":"Finish the Masterwork Weapon","p":"Finish the Masterwork Weapon","s":"Acte 1","a":[1],"r":"Village abandonné","i":"Dread_Hollow.jpg"},{"n":"Rescue the Gnome","p":"Rescue the Gnome","s":"Acte 1","a":[1],"r":"Village abandonné","i":"Barcus_on_Windmill_Quest.jpg"},{"n":"Search the Cellar","p":"Search the Cellar","s":"Acte 1","a":[1,2,3],"r":"Village abandonné","i":"Apothecary_House_Quest.jpg"},{"n":"Unlock the Ancient Tome","p":"Unlock the Ancient Tome","s":"Acte 1","a":[1,2,3],"r":"Village abandonné","i":"Thay_Book_Unlocked_Quest.jpg"},{"n":"Get Help from Auntie Ethel","p":"Get Help from Auntie Ethel","s":"Acte 1","a":[1],"r":"Marais ensoleillés","i":"Ethel_Help_Quest.jpg"},{"n":"Save Mayrina","p":"Save Mayrina","s":"Acte 1","a":[1],"r":"Marais ensoleillés","i":"Save_Mayrina_Quest.jpg"},{"n":"Find the Missing Shipment","p":"Find the Missing Shipment","s":"Acte 1","a":[1],"r":"Route surélevée","i":"Find_the_Missing_Shipment_Rugan_Quest.jpg"},{"n":"Free the Artist","p":"Free the Artist","s":"Acte 1","a":[1,3],"r":"Route surélevée","i":"Free_the_Artist_Quest.jpg"},{"n":"Hunt the Devil","p":"Hunt the Devil","s":"Acte 1","a":[1],"r":"Route surélevée","i":"Hunt_the_Devil_Quest.jpg"},{"n":"Rescue the Grand Duke","p":"Rescue the Grand Duke","s":"Acte 1","a":[1,2,3],"r":"Route surélevée","i":"Flaming_Fist_Waukeen_Quest.jpg"},{"n":"Rescue the Trapped Man","p":"Rescue the Trapped Man","s":"Acte 1","a":[1],"r":"Route surélevée","i":"Benryn_Waukeen_Quest.jpg"},{"n":"Ask the Goblin Priestess for Help","p":"Ask the Goblin Priestess for Help","s":"Acte 1","a":[1],"r":"Camp gobelin et Sanctuaire brisé","i":"Ask_the_Goblin_Priestess_for_Help_Quest.jpg"},{"n":"Defeat the Goblins","p":"Defeat the Goblins","s":"Acte 1","a":[1],"r":"Camp gobelin et Sanctuaire brisé","i":"Dror_Ragzlin_Quest.webp"},{"n":"Rescue the Druid Halsin","p":"Rescue the Druid Halsin","s":"Acte 1","a":[1],"r":"Camp gobelin et Sanctuaire brisé","i":"Save_the_First_Druid_Quest.jpg"},{"n":"Rescue Volo","p":"Rescue Volo","s":"Acte 1","a":[1],"r":"Camp gobelin et Sanctuaire brisé","i":"Rescue_Volo_Quest.jpg"},{"n":"Avenge Glut's Circle","p":"Avenge Glut's Circle","s":"Acte 1","a":[1],"r":"Outreterre","i":"Gluts_Circle_Quest.jpg"},{"n":"Defeat the Duergar Intruders","p":"Defeat the Duergar Intruders","s":"Acte 1","a":[1],"r":"Outreterre","i":"Defeat_the_Duergar_Quest.jpg"},{"n":"Deliver Nere's Head","p":"Deliver Nere's Head","s":"Acte 1","a":[1],"r":"Outreterre","i":"Deliver_Neres_Head_Quest.jpg"},{"n":"Cure the Poisoned Gnome","p":"Cure the Poisoned Gnome","s":"Acte 1","a":[1],"r":"Outreterre","i":"Thulla_Poisoned_Quest.jpg"},{"n":"Find the Missing Boots","p":"Find the Missing Boots","s":"Acte 1","a":[1],"r":"Outreterre","i":"Coal_Missing_Boots_Quest.jpg"},{"n":"Find the Mushroom Picker","p":"Find the Mushroom Picker","s":"Acte 1","a":[1],"r":"Outreterre","i":"Baelen_Bibberbang_Quest.jpg"},{"n":"Help Omeluum Investigate the Parasite","p":"Help Omeluum Investigate the Parasite","s":"Acte 1","a":[1],"r":"Outreterre","i":"Omeluum_Quest.jpg"},{"n":"Travel through the Underdark","p":"Travel through the Underdark","s":"Acte 1","a":[1],"r":"Outreterre","i":"Enter_the_Underdark_Quest.jpg"},{"n":"Blind the Absolute","p":"Blind the Absolute","s":"Acte 1","a":[1],"r":"Grymforge","i":"Blind_the_Absolute_Quest.jpg"},{"n":"Find Explosives","p":"Find Explosives","s":"Acte 1","a":[1],"r":"Grymforge","i":"Philomeen_Runepowder_Explosives_Quest.jpg"},{"n":"Free True Soul Nere","p":"Free True Soul Nere","s":"Acte 1","a":[1],"r":"Grymforge","i":"Nere_Freed_Quest.jpg"},{"n":"Get Past the Rubble","p":"Get Past the Rubble","s":"Acte 1","a":[1],"r":"Grymforge","i":"Clear_Rubble_Rothe_Quest.jpg"},{"n":"Help the Spirit of the Amulet","p":"Help the Spirit of the Amulet","s":"Acte 1","a":[1,3],"r":"Grymforge","i":"Help_the_Cursed_Monk_Quest.jpg"},{"n":"Save the Grymforge Gnomes","p":"Save the Grymforge Gnomes","s":"Acte 1","a":[1],"r":"Grymforge","i":"Save_the_Grymforge_Gnomes_Quest.jpg"},{"n":"The Adamantine Forge","p":"The Adamantine Forge (Quest)","s":"Acte 1","a":[1],"r":"Grymforge","i":"Grym_Adamantine_Forge_Quest.jpg"},{"n":"Find the Blood of Lathander","p":"Find the Blood of Lathander","s":"Acte 1","a":[1],"r":"Sentier du monastère de Rosymorn","i":"Blood_of_Lathander_Quest.jpg"},{"n":"Find the Githyanki Crèche","p":"Find the Githyanki Crèche","s":"Acte 1","a":[1],"r":"Sentier du monastère de Rosymorn","i":"Laezel_Zaithisk_Quest.jpg"},{"n":"Reclaim the Blue Jay's Nest","p":"Reclaim the Blue Jay's Nest","s":"Acte 1","a":[1],"r":"Sentier du monastère de Rosymorn","i":"Rosymorn_Monastery_Trail_Blue_Jay.jpg"},{"n":"Steal a Githyanki Egg","p":"Steal a Githyanki Egg","s":"Acte 1","a":[1],"r":"Sentier du monastère de Rosymorn","i":"Githyanki_Egg_Quest.jpg"},{"n":"Travel through the Mountain Pass","p":"Travel through the Mountain Pass","s":"Acte 1","a":[1],"r":"Sentier du monastère de Rosymorn","i":"Shadow_Cursed_Lands_Overland_Quest.jpg"},{"n":"Break Yurgir's Contract","p":"Break Yurgir's Contract","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Lyrthindor_Transformed_Quest.jpg"},{"n":"Find Arabella's Parents","p":"Find Arabella's Parents","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Find_Arabellas_Parents_Quest.jpg"},{"n":"Find Rolan in the Shadows","p":"Find Rolan in the Shadows","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Save_Rolan_Quest.jpg"},{"n":"Investigate the Selûnite Resistance","p":"Investigate the Selûnite Resistance","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Selunite_Resistance_Quest.jpg"},{"n":"Kill Raphael's Old Enemy","p":"Kill Raphael's Old Enemy","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Yurgir_Enemy_Quest.jpg"},{"n":"Lift the Shadow Curse","p":"Lift the Shadow Curse","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Oliver_Confronted_Quest.jpg"},{"n":"Punish the Wicked","p":"Punish the Wicked","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"He_Who_Was_Quest.webp"},{"n":"Wake Art Cullagh","p":"Wake Art Cullagh","s":"Acte 2","a":[2],"r":"Terres maudites par l’ombre","i":"Wake_Art_Cullagh_Quest.jpg"},{"n":"Capture Isobel the Selûnite Cleric","p":"Capture Isobel the Selûnite Cleric","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Marcus_Successful_Quest.jpg"},{"n":"Decide Minthara's Fate","p":"Decide Minthara's Fate","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Minthy_Quest.webp"},{"n":"Defeat Ketheric Thorm","p":"Defeat Ketheric Thorm","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Defeat_Ketty_Thorm_Quest.jpg"},{"n":"Find Ketheric Thorm's Relic","p":"Find Ketheric Thorm's Relic","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Balthazar_Relic_Quest.jpg"},{"n":"Find Mol","p":"Find Mol","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Mol_Kidnapped_Quest.jpg"},{"n":"Find Zevlor","p":"Find Zevlor","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Zevlor_Pod_Quest.jpg"},{"n":"Follow the Convoy","p":"Follow the Convoy","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Follow_the_Convoy_Quest.jpg"},{"n":"Infiltrate Moonrise Towers","p":"Infiltrate Moonrise Towers","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Infiltrate_Moonrise_Towers_Quest.jpg"},{"n":"Rescue the Tieflings","p":"Rescue the Tieflings","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Tiefling_Prisoners_Quest.jpg"},{"n":"Rescue Wulbren","p":"Rescue Wulbren","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Rescue_Wulbren_Quest.jpg"},{"n":"Resolve the Abduction","p":"Resolve the Abduction","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Isobel_Moonlight_Prayer_Quest.jpg"},{"n":"Seek Protection from the Shadow Curse","p":"Seek Protection from the Shadow Curse","s":"Acte 2","a":[2],"r":"Tours de Sélénae","i":"Shadow_Curse_Quest.jpg"},{"n":"Deal with the Gnomes","p":"Deal with the Gnomes","s":"Acte 3","a":[3],"r":"Rivington","i":"Falcao_Quest.jpg"},{"n":"Feed the Mind Flayer","p":"Feed the Mind Flayer","s":"Acte 3","a":[3],"r":"Rivington","i":"Newborn_Mind_Flayer_Sleeping.jpg"},{"n":"Find a Way into Wyrm's Rock Fortress","p":"Find a Way into Wyrm's Rock Fortress","s":"Acte 3","a":[3],"r":"Rivington","i":"Blaze_Elin_Entry.jpg"},{"n":"Find Dribbles the Clown","p":"Find Dribbles the Clown","s":"Acte 3","a":[3],"r":"Rivington","i":"Dribbles_Imposter.jpg"},{"n":"Find the Missing Letters","p":"Find the Missing Letters","s":"Acte 3","a":[3],"r":"Rivington","i":"Commander_Lightfeathers_Quest.jpg"},{"n":"Find the 'Stern Librarian' Ffion","p":"Find the 'Stern Librarian' Ffion","s":"Acte 3","a":[3],"r":"Rivington","i":"Mamzell_Amira_Quest.jpg"},{"n":"Free Counsellor Florrick","p":"Free Counsellor Florrick","s":"Acte 3","a":[3],"r":"Rivington","i":"Florrick_Prison_Quest.jpg"},{"n":"Help the Devilish Ox","p":"Help the Devilish Ox","s":"Acte 3","a":[3],"r":"Rivington","i":"Devilish_Ox_Chapter_3.jpg"},{"n":"Investigate the Suspicious Toys","p":"Investigate the Suspicious Toys","s":"Acte 3","a":[3],"r":"Rivington","i":"Arfur_Confrontation.jpg"},{"n":"Solve the Open Hand Temple Murders","p":"Solve the Open Hand Temple Murders","s":"Acte 3","a":[3],"r":"Rivington","i":"Yannis_Valeria.jpg"},{"n":"Aid the Underduke","p":"Aid the Underduke","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Nine_Fingers_Keene_Underduke_Quest.jpg"},{"n":"Avenge the Drowned","p":"Avenge the Drowned","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Allandra_Grey_Quest.jpg"},{"n":"Avenge the Hag Survivors","p":"Avenge the Hag Survivors","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Ethel_Grizzly.jpg"},{"n":"Avenge the Ironhands","p":"Avenge the Ironhands","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Wulbren_Avenge_Quest.jpg"},{"n":"End Mystic Carrion's Immortality","p":"End Mystic Carrion's Immortality","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Thrumbo_Quest.jpg"},{"n":"Find Mystic Carrion's Servant","p":"Find Mystic Carrion's Servant","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Mystic_Carrion_Servant_Quest.jpg"},{"n":"Help the Hag Survivors","p":"Help the Hag Survivors","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Hag_Survivors.jpg"},{"n":"Investigate Cazador's Palace","p":"Investigate Cazador's Palace","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Vampire_Spawn_in_Flophouse.jpg"},{"n":"Investigate the House of Grief","p":"Investigate the House of Grief","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Mirie_House_of_Grief.jpg"},{"n":"Retrieve Omeluum","p":"Retrieve Omeluum","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Blurg_Act_3.webp"},{"n":"Return Rakath's Gold","p":"Return Rakath's Gold","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Rakath_Glitterbeard_Quest.jpg"},{"n":"Roveer's Storehouse","p":"Roveer's Storehouse","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Roveer_Quest.jpg"},{"n":"Save the Gondians","p":"Save the Gondians","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Prinskis_Motivation.jpg"},{"n":"Save Vanra","p":"Save Vanra","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Lora_Quest.jpg"},{"n":"Stop the Presses","p":"Stop the Presses","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Ettvard_Quest.jpg"},{"n":"Surrender Shadowheart to Viconia","p":"Surrender Shadowheart to Viconia","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Viconia_Deal.jpg"},{"n":"Visit the Emperor's Old Hideout","p":"Visit the Emperor's Old Hideout","s":"Acte 3","a":[3],"r":"La Porte de Baldur","i":"Emperor_Storeroom_Button.jpg"},{"n":"Acquire the Gauntlets for Helsik","p":"Acquire the Gauntlets for Helsik","s":"Acte 3","a":[3],"r":"Maison de l’Espoir","i":"Helsik_Gauntlets_Quest.jpg"},{"n":"Save Hope","p":"Save Hope","s":"Acte 3","a":[3],"r":"Maison de l’Espoir","i":"Hope_Quest.jpg"},{"n":"Confront the Elder Brain","p":"Confront the Elder Brain","s":"Acte 3","a":[3],"r":"Final","i":"Confront_the_Elder_Brain_Quest.jpg"},{"n":"Consider Gortash's Bargain","p":"Consider Gortash's Bargain","s":"Acte 3","a":[3],"r":"Final","i":"Gortash_Bargain_Quest.jpg"},{"n":"Control the Elder Brain","p":"Control the Elder Brain","s":"Acte 3","a":[3],"r":"Final","i":"Control_the_Elder_Brain_Quest.jpg"},{"n":"Destroy the Elder Brain","p":"Destroy the Elder Brain","s":"Acte 3","a":[3],"r":"Final","i":"Destroy_the_Elder_Brain_Quest.jpg"},{"n":"Disable the Steel Watch","p":"Disable the Steel Watch","s":"Acte 3","a":[3],"r":"Final","i":"Disable_the_Steel_Watch_Quest.jpg"},{"n":"Get Gortash's Netherstone","p":"Get Gortash's Netherstone","s":"Acte 3","a":[3],"r":"Final","i":"Gortash_Wyrms_Rock_Quest.jpg"},{"n":"Get Orin's Netherstone","p":"Get Orin's Netherstone","s":"Acte 3","a":[3],"r":"Final","i":"Orin_Bhaal_Temple_Quest.jpg"},{"n":"Impress the Murder Tribunal","p":"Impress the Murder Tribunal","s":"Acte 3","a":[3],"r":"Final","i":"Sarevok_Murder_Tribunal.jpg"},{"n":"Investigate the Murders","p":"Investigate the Murders","s":"Acte 3","a":[3],"r":"Final","i":"Devella_Quest.jpg"},{"n":"Rescue Orin's Victim","p":"Rescue Orin's Victim","s":"Acte 3","a":[3],"r":"Final","i":"Orin_Victim_Halsin_Quest.jpg"}],"sub":{"Find a Cure":["Ask the Goblin Priestess for Help","Find the Githyanki Crèche","Get Help from Auntie Ethel","Get Help from Healer Nettie","Help Omeluum Investigate the Parasite","Rescue the Druid Halsin"],"Travel to Moonrise Towers":["Travel through the Mountain Pass","Travel through the Underdark"],"Daughter of Darkness":["A Familiar Face","The Chosen of Shar"],"Our Fiery Friend":["The Hellion's Heart"],"The Blade of Frontiers":["The Grand Duke","Wyrmway"],"The Wizard of Waterdeep":["Balthazar's Experiment","In Case of Death..."],"Deal with the Devil":["Escape the Deal","Fulfill the Deal"],"Servant of None":["Forging a Heart"],"The Urge":["Open Your Scars"],"Search the Cellar":["Unlock the Ancient Tome","Destroy the Ancient Tome"],"Find Mystic Carrion's Servant":["End Mystic Carrion's Immortality"],"Investigate the House of Grief":["Surrender Shadowheart to Viconia"],"Get Gortash's Netherstone":["Consider Gortash's Bargain","Disable the Steel Watch"],"Get Orin's Netherstone":["Rescue Orin's Victim","Investigate the Murders","Impress the Murder Tribunal"]}};
+/* ---------- images des éléments ---------- */
+{const s1=imgSrc;imgSrc=function(key,big){if(key&&key.startsWith('quest:')&&!S.images[key]){if(!STANDALONE||S.prefs.wikiIcons===false)return null;const q=S.quests.find(x=>x.id===key.slice(6));return q&&q.img?wikiFile(q.img):null;}return s1(key,big);};}
+const EIMG={npc:'npc:',item:'item:',spell:'spell:',lore:'lore:',build:'build:',quest:'quest:',video:'vid:'};
+function eImgSrc(e){const p=EIMG[e.t];return p?imgSrc(p+e.id):null;}
+function eIcon(e,cls){const s=eImgSrc(e);return s?`<img class="eico ${cls||''}" src="${esc(s)}" alt="" loading="lazy" data-emo="${esc(e.icon)}">`:`<span class="eemo ${cls||''}" aria-hidden="true">${e.icon}</span>`;}
+document.addEventListener('error',ev=>{const t=ev.target;if(t&&t.tagName==='IMG'&&t.classList.contains('eico')){const s=document.createElement('span');s.className='eemo';s.setAttribute('aria-hidden','true');s.textContent=t.dataset.emo||'';t.replaceWith(s);}},true);
+
+/* ---------- quêtes du jeu ---------- */
+function importGameQuests(){
+  let n=0,u=0;const byName={};
+  for(const g of GAME_QUESTS.q){
+    const id='q-'+slug(g.p);
+    const o={id,title:g.n,act:g.a.length===1?g.a[0]:(g.a[0]||''),acts:g.a,cat:g.s,region:g.r,img:g.i,wikiPage:g.p,wiki:true};
+    const ex=S.quests.find(x=>x.id===id);
+    if(ex){Object.assign(ex,{acts:o.acts,cat:o.cat,region:o.region,img:o.img,wikiPage:o.wikiPage,wiki:true});if(!ex.title)ex.title=o.title;u++;}
+    else{S.quests.push({...newQuest(o.title),...o,status:'À faire'});n++;}
+    byName[g.n]=id;
+  }
+  for(const [p,kids] of Object.entries(GAME_QUESTS.sub))for(const k of kids)if(byName[p]&&byName[k]){const a='quest:'+byName[p],b='quest:'+byName[k];if(!S.links.some(l=>(l.a===a&&l.b===b)||(l.a===b&&l.b===a)))S.links.push({a,b,at:Date.now(),auto:'sub'});}
+  Store.touch('quests');Store.touch('links');EC=null;
+  return {n,u};
+}
+ACT['quests-import']=()=>{const r=importGameQuests();toast(`${r.n} quête(s) ajoutée(s)${r.u?`, ${r.u} mise(s) à jour`:''}. Tes statuts et notes sont conservés.`);renderQuetes();};
+const QCATS=['Prologue','Quête principale','Compagnon','Compagnon (sous-quête)','Personnelle','Origine','Acte 1','Acte 2','Acte 3'];
+function renderQuetes(){
+  if(QV.sel&&!S.quests.find(x=>x.id===QV.sel))QV.sel=null;
+  const nGame=S.quests.filter(q=>q.wiki).length;
+  $('#v-quetes').innerHTML=`<h2>Quêtes</h2>
+  <p class="lead">Les quêtes du jeu et les tiennes. Relie-les aux PNJ, objets, lieux, notes et vidéos, et épingle-les sur l’accueil.</p>
+  <div class="split">
+    <div class="panel">
+      <div class="row"><button class="primary" data-act="quest-new">Nouvelle quête</button><button data-act="quests-import">${nGame?'Mettre à jour les quêtes du jeu':'Importer les '+GAME_QUESTS.q.length+' quêtes du jeu'}</button></div>
+      <div class="row" style="margin-top:.6rem"><input type="search" id="qq" value="${esc(QV.q)}" placeholder="Rechercher…" style="flex:1" aria-label="Rechercher une quête"></div>
+      <div class="row" style="margin-top:.4rem">
+      <select id="qst" aria-label="Statut">${opt('','Tous statuts',QV.st)}${QST.map(s=>opt(s,s,QV.st)).join('')}</select>
+      <select id="qact" aria-label="Acte">${opt('','Tous actes',QV.act)}${[1,2,3].map(a=>opt(a,'Acte '+a,QV.act)).join('')}</select>
+      <select id="qcat" aria-label="Catégorie">${opt('','Toutes catégories',QV.cat||'')}${QCATS.map(c=>opt(c,c,QV.cat||'')).join('')}${opt('mine','Mes quêtes',QV.cat||'')}</select></div>
+      <ul class="list" id="questlist"></ul>
+    </div>
+    <div class="panel" id="quested"></div>
+  </div>`;
+  renderQuestList();renderQuestEditor();
+}
+function renderQuestList(){
+  const L=$('#questlist');if(!L)return;const q=norm(QV.q);
+  const list=S.quests.filter(x=>(!QV.st||x.status===QV.st)&&(!QV.act||String(x.act)===QV.act||(x.acts||[]).map(String).includes(QV.act))&&(!QV.cat||(QV.cat==='mine'?!x.wiki:x.cat===QV.cat))&&(!q||norm(x.title+' '+(x.region||'')+' '+stripTok(x.text)).includes(q)))
+    .sort((a,b)=>QST.indexOf(a.status)-QST.indexOf(b.status)||QCATS.indexOf(a.cat)-QCATS.indexOf(b.cat)||(a.region||'').localeCompare(b.region||'','fr')||a.title.localeCompare(b.title,'fr'));
+  L.innerHTML=list.length?list.map(x=>{const n=neighbors('quest:'+x.id).length;const e=ent('quest:'+x.id);return `<li><button data-act="quest-open" data-id="${x.id}" aria-current="${x.id===QV.sel}" class="qrow">${e?eIcon(e,'qthumb'):''}<span><span class="t">${esc(x.title||'Quête sans titre')}<span class="kindtag qs-${QST.indexOf(x.status)}">${esc(x.status)}</span></span><span class="s">${[x.cat,x.region,n?n+' lien'+(n>1?'s':''):''].filter(Boolean).map(esc).join(', ')}</span></span></button></li>`;}).join(''):'<li class="empty-state">Aucune quête. Importe celles du jeu avec le bouton ci-dessus.</li>';
+}
+function renderQuestEditor(){
+  const E=$('#quested');if(!E)return;const x=S.quests.find(q=>q.id===QV.sel);
+  if(!x){E.innerHTML='<p class="empty-state">Choisis une quête à gauche, ou crée-en une.</p>';return;}
+  const big=imgSrc('quest:'+x.id);
+  E.innerHTML=`<div class="stack">
+    ${big?`<img class="qhero" src="${esc(big)}" alt="">`:''}
+    <input class="titleinput" data-qq="title" data-fk="qt" value="${esc(x.title)}" placeholder="Nom de la quête" aria-label="Nom de la quête">
+    ${x.wiki?`<p class="small muted" style="margin:0">${[x.cat,x.region,(x.acts||[]).length?'Acte'+((x.acts||[]).length>1?'s ':' ')+x.acts.join(', '):''].filter(Boolean).map(esc).join(', ')} <a href="${wikiUrl(x.wikiPage||x.title)}" target="_blank" rel="noopener">fiche bg3.wiki</a></p>`:''}
+    <div class="row"><label class="field">Statut<select data-qq="status">${QST.map(s=>opt(s,s,x.status)).join('')}</select></label>
+    <label class="field">Acte<select data-qq="act">${opt('','—',x.act)}${[1,2,3].map(a=>opt(a,'Acte '+a,x.act)).join('')}</select></label></div>
+    ${richEditor('quest:'+x.id+':text',x.text,'Étapes, choix, conséquences…')}
+    ${linksPanel('quest:'+x.id)}
+    <div class="row"><span style="flex:1"></span><button class="danger" data-act="quest-del">Supprimer la quête</button></div>
+  </div>`;
+}
+document.addEventListener('change',e=>{if(e.target.id==='qcat'){QV.cat=e.target.value;renderQuestList();}});
+
+/* =========================================================
+   RÉSEAU : LA GALAXIE
+   ========================================================= */
+const GX={mode:'galaxie',sel:null,focus:false,depth:2,types:new Set(ETORDER),hover:null,cam:{x:0,y:0,z:1},nodes:[],idx:new Map(),edges:[],alpha:0,raf:0,imgs:new Map(),sortK:'deg',sortDir:-1,builtKey:''};
+GX.col={};GX.lastI=0;const typeColor=t=>GX.col[t]||(GX.col[t]=(getComputedStyle(document.documentElement).getPropertyValue('--gc-'+t).trim()||'#a98bff'));
+function gxImg(e){const s=eImgSrc(e);if(!s)return null;let im=GX.imgs.get(s);if(!im){im=new Image();im.decoding='async';im.src=s;im.onload=()=>gxDraw();im.onerror=()=>{im.bad=true;};GX.imgs.set(s,im);}return im.complete&&!im.bad&&im.naturalWidth?im:null;}
+function gxBuild(){
+  const A=adjacency();let refs=[...A.keys()].filter(r=>{const e=ent(r);return e&&GX.types.has(e.t)&&[...A.get(r).keys()].some(o=>{const f=ent(o);return f&&GX.types.has(f.t);});});
+  if(GX.focus&&GX.sel&&ent(GX.sel)){const keep=new Set([GX.sel]);let fr=[GX.sel];for(let d=0;d<GX.depth;d++){const nx=[];for(const r of fr)for(const o of (A.get(r)||new Map()).keys()){const e=ent(o);if(e&&GX.types.has(e.t)&&!keep.has(o)){keep.add(o);nx.push(o);}}fr=nx;}refs=[...keep];}
+  const old=GX.idx;GX.nodes=[];GX.idx=new Map();
+  const ang={};ETORDER.forEach((t,i)=>ang[t]=i/ETORDER.length*Math.PI*2);
+  refs.forEach((r,i)=>{const e=ent(r);const deg=[...(A.get(r)||new Map()).keys()].filter(o=>refs.includes?true:true).length;const o=old.get(r);
+    const rad=120+Math.random()*260,a=ang[e.t]+rad*0.006+(Math.random()-.5)*0.9;
+    const n=o?{...o,e,deg}:{ref:r,e,deg,x:Math.cos(a)*rad,y:Math.sin(a)*rad,vx:0,vy:0,fixed:false};GX.nodes.push(n);GX.idx.set(r,n);});
+  const set=new Set(refs);GX.edges=[];const seen=new Set();
+  for(const r of refs)for(const o of (A.get(r)||new Map()).keys())if(set.has(o)){const k=r<o?r+'|'+o:o+'|'+r;if(!seen.has(k)){seen.add(k);GX.edges.push([GX.idx.get(r),GX.idx.get(o)]);}}
+  GX.nodes.forEach(n=>{n.deg=0;});GX.edges.forEach(([a,b])=>{a.deg++;b.deg++;});
+  GX.nodes.forEach(n=>{n.r=7+Math.min(22,Math.sqrt(n.deg)*4.2);});
+  GX.alpha=1;
+}
+function gxTick(){
+  const N=GX.nodes,E=GX.edges,al=GX.alpha;if(al<0.01)return false;
+  for(let i=0;i<N.length;i++){const a=N[i];for(let j=i+1;j<N.length;j++){const b=N[j];let dx=b.x-a.x,dy=b.y-a.y;let d2=dx*dx+dy*dy;if(d2>250000)continue;if(d2<1){dx=Math.random()-.5;dy=Math.random()-.5;d2=1;}const f=(1800+a.r*b.r*12)/d2*al;const d=Math.sqrt(d2);const fx=dx/d*f,fy=dy/d*f;a.vx-=fx;a.vy-=fy;b.vx+=fx;b.vy+=fy;}}
+  for(const [a,b] of E){const dx=b.x-a.x,dy=b.y-a.y;const d=Math.sqrt(dx*dx+dy*dy)||1;const L=60+a.r+b.r;const f=(d-L)*0.035*al;const fx=dx/d*f,fy=dy/d*f;a.vx+=fx;a.vy+=fy;b.vx-=fx;b.vy-=fy;}
+  for(const n of N){if(n.fixed){n.vx=n.vy=0;continue;}n.vx-=n.x*0.004*al;n.vy-=n.y*0.004*al;const sw=0.0009*al;const vx=-n.y*sw,vy=n.x*sw;n.vx+=vx;n.vy+=vy;n.vx*=0.82;n.vy*=0.82;n.x+=Math.max(-40,Math.min(40,n.vx));n.y+=Math.max(-40,Math.min(40,n.vy));}
+  GX.alpha*=0.985;return true;
+}
+let GXSTARS=null;
+function gxStars(w,h){if(GXSTARS&&GXSTARS.w===w&&GXSTARS.h===h)return GXSTARS.s;const s=[];for(let i=0;i<Math.round(w*h/2600);i++)s.push([Math.random()*w,Math.random()*h,Math.random()*1.3+.2,Math.random()]);GXSTARS={w,h,s};return s;}
+function gxDraw(){
+  const cv=$('#gxcanvas');if(!cv)return;const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;const dpr=window.devicePixelRatio||1;const W=cv.clientWidth,H=cv.clientHeight;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.75);g.addColorStop(0,'#1d1533');g.addColorStop(.55,'#100c1c');g.addColorStop(1,'#07060c');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const t=performance.now()/1000;for(const [x,y,r,p] of gxStars(W,H)){ctx.globalAlpha=.25+.35*Math.abs(Math.sin(t*.6+p*9));ctx.fillStyle='#fff';ctx.fillRect(x,y,r,r);}ctx.globalAlpha=1;
+  const {x:cx,y:cy,z}=GX.cam;const toS=n=>[W/2+(n.x-cx)*z,H/2+(n.y-cy)*z];
+  const act=GX.hover||GX.idx.get(GX.sel);const near=new Set();if(act){near.add(act);for(const [a,b] of GX.edges){if(a===act)near.add(b);if(b===act)near.add(a);}}
+  ctx.lineCap='round';
+  for(const [a,b] of GX.edges){const [x1,y1]=toS(a),[x2,y2]=toS(b);const hot=act&&(a===act||b===act);
+    ctx.strokeStyle=hot?typeColor((a===act?b:a).e.t):'rgba(190,175,255,0.16)';ctx.globalAlpha=act&&!hot?.35:hot?.95:1;ctx.lineWidth=hot?2.2:1;
+    ctx.beginPath();const mx=(x1+x2)/2+(y2-y1)*.08,my=(y1+y2)/2-(x2-x1)*.08;ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);ctx.stroke();}
+  ctx.globalAlpha=1;
+  const order=[...GX.nodes].sort((a,b)=>(near.has(a)?1:0)-(near.has(b)?1:0));
+  for(const n of order){const [x,y]=toS(n);const r=Math.max(4,n.r*Math.sqrt(z));if(x<-60||y<-60||x>W+60||y>H+60)continue;const col=typeColor(n.e.t);const dim=act&&!near.has(n);
+    ctx.globalAlpha=dim?.28:1;
+    ctx.shadowColor=col;ctx.shadowBlur=(n===act?28:near.has(n)?16:8);
+    ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fillStyle='#18122a';ctx.fill();ctx.shadowBlur=0;
+    const im=r>=7?gxImg(n.e):null;
+    if(im){ctx.save();ctx.beginPath();ctx.arc(x,y,r-1.5,0,Math.PI*2);ctx.clip();const s=Math.max((r*2)/im.naturalWidth,(r*2)/im.naturalHeight);const iw=im.naturalWidth*s,ih=im.naturalHeight*s;ctx.drawImage(im,x-iw/2,y-ih/2,iw,ih);ctx.restore();}
+    else{ctx.font=`${Math.round(r*1.05)}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.e.icon,x,y+1);}
+    ctx.lineWidth=n.ref===GX.sel?3.5:2;ctx.strokeStyle=col;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+    if(n.ref===GX.sel){ctx.lineWidth=1.5;ctx.globalAlpha=.6+.4*Math.sin(t*3);ctx.beginPath();ctx.arc(x,y,r+7,0,Math.PI*2);ctx.stroke();ctx.globalAlpha=dim?.28:1;}
+    const showLabel=n===act||near.has(n)&&act||z>1.25||n.deg>=6&&z>.7;
+    if(showLabel){ctx.font=`${n===act?700:500} 12.5px "Alegreya Sans",sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';const label=n.e.name.length>28?n.e.name.slice(0,27)+'…':n.e.name;ctx.lineWidth=4;ctx.strokeStyle='rgba(10,8,18,.85)';ctx.strokeText(label,x,y+r+5);ctx.fillStyle=n===act?'#fff':'#ddd5f0';ctx.fillText(label,x,y+r+5);}
+  }
+  ctx.globalAlpha=1;
+}
+function gxLoop(){cancelAnimationFrame(GX.raf);let f=0;GX.lastI=performance.now();const step=()=>{if(cur!=='reseau'||GX.mode!=='galaxie'||!$('#gxcanvas'))return;f++;const moving=gxTick()||gxTick();const idle=!moving&&performance.now()-GX.lastI>4000;if(!idle||f%8===0)gxDraw();GX.raf=requestAnimationFrame(step);};GX.raf=requestAnimationFrame(step);}
+function gxFit(){if(!GX.nodes.length)return;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(const n of GX.nodes){x0=Math.min(x0,n.x);y0=Math.min(y0,n.y);x1=Math.max(x1,n.x);y1=Math.max(y1,n.y);}const cv=$('#gxcanvas');if(!cv)return;GX.cam.x=(x0+x1)/2;GX.cam.y=(y0+y1)/2;GX.cam.z=clamp(Math.min(cv.clientWidth/(x1-x0+160),cv.clientHeight/(y1-y0+160)),.25,2);}
+function gxFly(ref){const n=GX.idx.get(ref);if(!n)return;const from={...GX.cam};const to={x:n.x,y:n.y,z:Math.max(GX.cam.z,1.15)};const t0=performance.now();const anim=()=>{const k=Math.min(1,(performance.now()-t0)/600);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.cam.x=from.x+(to.x-from.x)*e;GX.cam.y=from.y+(to.y-from.y)*e;GX.cam.z=from.z+(to.z-from.z)*e;if(k<1)requestAnimationFrame(anim);};anim();}
+function gxPanel(){
+  const P=$('#gxpanel');if(!P)return;const e=GX.sel&&ent(GX.sel);
+  if(!e){const n=GX.nodes.length;P.innerHTML=`<h3>La galaxie du codex</h3><p class="small muted">${n} élément${n>1?'s':''} reliés, ${GX.edges.length} lien${GX.edges.length>1?'s':''}. Chaque étoile est une fiche ; sa taille montre son nombre de liens.</p><ul class="small gxhelp"><li><b>Clic</b> sur une étoile : ses détails ici.</li><li><b>Double-clic</b> : ouvrir sa fiche.</li><li><b>Glisser</b> le fond pour te déplacer, la molette ou deux doigts pour zoomer, glisser une étoile pour la placer.</li></ul>${GX.nodes.length?`<p class="small muted" style="margin-bottom:.3rem">Les plus reliés :</p><div class="lchips">${[...GX.nodes].sort((a,b)=>b.deg-a.deg).slice(0,10).map(n=>`<span class="lchip" style="--gc:var(--gc-${n.e.t})"><button data-act="gx-sel" data-ref="${esc(n.ref)}">${eIcon(n.e)} ${esc(n.e.name)}<small>${n.deg}</small></button></span>`).join('')}</div>`:''}`;return;}
+  const big=eImgSrc(e);
+  P.innerHTML=`<div class="gxhead">${big?`<img class="gxhero" src="${esc(big)}" alt="">`:`<span class="gxemo">${e.icon}</span>`}<div><h3 style="margin:0">${esc(e.name)}</h3><p class="small muted" style="margin:0">${esc(ETYPE[e.t][1])}${e.sub?', '+esc(e.sub):''}</p></div></div>
+  <div class="row" style="margin:.6rem 0"><button class="primary small" data-act="ref-open" data-ref="${esc(e.ref)}">↗ Ouvrir la fiche</button><button class="small" data-act="pin" data-ref="${esc(e.ref)}">📌 Épingler</button><button class="small" data-act="gx-link" data-ref="${esc(e.ref)}">+ Relier à…</button></div>
+  <label class="checks small" style="margin-bottom:.4rem"><label><input type="checkbox" id="gx-focus"${GX.focus?' checked':''}>Ne montrer que son entourage</label>${GX.focus?`<select id="gx-depth" aria-label="Profondeur">${[1,2,3].map(n=>opt(n,n===1?'liens directs':n+' niveaux',GX.depth)).join('')}</select>`:''}</label>
+  ${linksPanel(e.ref).replace('<section class="links"','<section class="links gxlinks"')}`;
+}
+function gxSelect(ref,fly){GX.sel=ref||null;if(GX.focus&&ref){gxBuild();gxFit();}gxPanel();if(fly&&ref)gxFly(ref);}
+function renderReseau(){
+  GX.col={};GX.lastI=performance.now();
+  const v=$('#v-reseau');
+  const bar=`<div class="gxbar"><div class="seg" role="group" aria-label="Vue">${[['galaxie','✨ Galaxie'],['liste','☰ Liste'],['arbre','🌿 Arbre']].map(([k,n])=>`<button data-act="gx-mode" data-k="${k}" aria-pressed="${GX.mode===k}">${n}</button>`).join('')}</div>
+    ${GX.focus&&GX.mode==='galaxie'&&GX.sel?`<button class="small" data-act="gx-unfocus" title="Revoir toute la galaxie">✕ Entourage de ${esc((ent(GX.sel)||{name:''}).name)}</button>`:''}<div class="gxsearch"><input id="gx-q" type="search" placeholder="Trouver une étoile…" autocomplete="off" aria-label="Trouver un élément dans le réseau"><div id="gx-sug" class="gxsug" hidden></div></div>
+    <span class="gxchips">${ETORDER.map(t=>`<button class="chip gxchip" data-act="gx-type" data-t="${t}" aria-pressed="${GX.types.has(t)}" style="--gc:var(--gc-${t})">${ETYPE[t][0]} ${ETYPE[t][2]}</button>`).join('')}</span></div>`;
+  if(GX.mode==='arbre'){
+    GR.center=GX.sel||GR.center;renderReseauTree();v.insertAdjacentHTML('afterbegin',bar);return;
+  }
+  {const f=GX.focus;if(GX.mode==='liste')GX.focus=false;gxBuild();GX.focus=f;}
+  if(GX.mode==='liste'){
+    const key={name:n=>norm(n.e.name),type:n=>ETORDER.indexOf(n.e.t),deg:n=>n.deg}[GX.sortK];
+    const L=[...GX.nodes].sort((a,b)=>{const x=key(a),y=key(b);return (typeof x==='string'?x.localeCompare(y):x-y)*GX.sortDir||a.e.name.localeCompare(b.e.name,'fr');});
+    const th=(k,n)=>`<th aria-sort="${GX.sortK===k?(GX.sortDir>0?'ascending':'descending'):'none'}"><button class="thsort${GX.sortK===k?' on':''}" data-act="gx-sort" data-k="${k}">${n}<span class="sarrow">${GX.sortK===k?(GX.sortDir>0?'▲':'▼'):'↕'}</span></button></th>`;
+    v.innerHTML=bar+`<p class="small muted">${L.length} éléments reliés. Clique sur une ligne pour la voir dans la galaxie.</p><div class="tablewrap"><table><thead><tr>${th('name','Élément')}${th('type','Type')}${th('deg','Liens')}<th>Relié à</th></tr></thead><tbody>${L.map(n=>`<tr data-act="gx-show" data-ref="${esc(n.ref)}" tabindex="0"><td class="iname">${eIcon(n.e,'thumb')}${esc(n.e.name)}<small>${esc(n.e.sub||'')}</small></td><td>${ETYPE[n.e.t][0]} ${esc(ETYPE[n.e.t][1])}</td><td><b>${n.deg}</b></td><td class="small muted">${neighbors(n.ref).slice(0,4).map(x=>esc(x.e.name)).join(', ')}${n.deg>4?'…':''}</td></tr>`).join('')||'<tr><td colspan="4" class="empty-state">Aucun lien pour l’instant.</td></tr>'}</tbody></table></div>`;
+    return;
+  }
+  v.innerHTML=bar+`<div class="gxwrap"><canvas id="gxcanvas" aria-label="Galaxie des liens du codex"></canvas><aside class="gxpanel panel" id="gxpanel"></aside>
+    <div class="gxzoom"><button data-act="gx-zoom" data-z="1.3" aria-label="Zoomer">+</button><button data-act="gx-zoom" data-z="0.77" aria-label="Dézoomer">−</button><button data-act="gx-fit" title="Tout voir" aria-label="Tout voir">⤢</button></div>
+    ${GX.nodes.length?'':'<div class="gxempty"><p>Ta galaxie est encore vide.</p><p class="small">Relie des éléments entre eux (bouton « Relier à… » sur n’importe quelle fiche, ou mots liés dans tes textes) et ils apparaîtront ici comme des étoiles.</p></div>'}</div>`;
+  for(let i=0;i<220;i++)gxTick();GX.alpha=Math.max(GX.alpha,.25);
+  gxFit();gxPanel();gxAttach();gxLoop();
+}
+function gxAttach(){
+  const cv=$('#gxcanvas');if(!cv)return;const pts=new Map();let drag=null,pinch=null;
+  const world=(px,py)=>{const r=cv.getBoundingClientRect();return [GX.cam.x+(px-r.left-r.width/2)/GX.cam.z,GX.cam.y+(py-r.top-r.height/2)/GX.cam.z];};
+  const hit=(px,py)=>{const [wx,wy]=world(px,py);let best=null,bd=1e9;for(const n of GX.nodes){const d=Math.hypot(n.x-wx,n.y-wy);const rr=Math.max(4,n.r*Math.sqrt(GX.cam.z))/GX.cam.z+4/GX.cam.z;if(d<rr&&d<bd){bd=d;best=n;}}return best;};
+  cv.addEventListener('pointerdown',e=>{GX.lastI=performance.now();cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const [a,b]=[...pts.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:GX.cam.z};drag=null;return;}
+    const n=hit(e.clientX,e.clientY);drag={n,sx:e.clientX,sy:e.clientY,cx:GX.cam.x,cy:GX.cam.y,moved:false};if(n){n.fixed=true;}});
+  cv.addEventListener('pointermove',e=>{GX.lastI=performance.now();
+    if(pts.has(e.pointerId))pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pinch&&pts.size===2){const [a,b]=[...pts.values()];GX.cam.z=clamp(pinch.z*Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d,.15,4);return;}
+    if(!drag){const n=hit(e.clientX,e.clientY);if(n!==GX.hover){GX.hover=n;cv.style.cursor=n?'pointer':'grab';}return;}
+    const dx=e.clientX-drag.sx,dy=e.clientY-drag.sy;if(Math.abs(dx)+Math.abs(dy)>4)drag.moved=true;
+    if(drag.n){const [wx,wy]=world(e.clientX,e.clientY);drag.n.x=wx;drag.n.y=wy;GX.alpha=Math.max(GX.alpha,.15);}
+    else if(drag.moved){GX.cam.x=drag.cx-dx/GX.cam.z;GX.cam.y=drag.cy-dy/GX.cam.z;cv.style.cursor='grabbing';}
+  });
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(!drag)return;const d=drag;drag=null;cv.style.cursor='grab';
+    if(d.n&&!d.moved){d.n.fixed=false;gxSelect(d.n.ref,false);}else if(d.n){/* reste placé */}else if(!d.moved){gxSelect(null);}
+  };
+  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+  cv.addEventListener('pointerleave',()=>{if(!drag)GX.hover=null;});
+  cv.addEventListener('dblclick',e=>{const n=hit(e.clientX,e.clientY);if(n)openRef(n.ref);});
+  cv.addEventListener('wheel',e=>{GX.lastI=performance.now();e.preventDefault();const [wx,wy]=world(e.clientX,e.clientY);const nz=clamp(GX.cam.z*(e.deltaY<0?1.15:1/1.15),.15,4);const r=cv.getBoundingClientRect();GX.cam.z=nz;GX.cam.x=wx-(e.clientX-r.left-r.width/2)/nz;GX.cam.y=wy-(e.clientY-r.top-r.height/2)/nz;},{passive:false});
+}
+ACT['gx-mode']=t=>{GX.mode=t.dataset.k;renderReseau();};
+ACT['gx-unfocus']=()=>{GX.focus=false;renderReseau();if(GX.sel)setTimeout(()=>gxFly(GX.sel),60);};
+ACT['gx-type']=t=>{const k=t.dataset.t;if(GX.types.has(k))GX.types.delete(k);else GX.types.add(k);if(!GX.types.size)ETORDER.forEach(x=>GX.types.add(x));renderReseau();};
+ACT['gx-sel']=t=>gxSelect(t.dataset.ref,true);
+ACT['gx-show']=t=>{GX.mode='galaxie';GX.sel=t.dataset.ref;renderReseau();setTimeout(()=>gxFly(GX.sel),50);};
+ACT['gx-sort']=t=>{const k=t.dataset.k;if(GX.sortK===k)GX.sortDir*=-1;else{GX.sortK=k;GX.sortDir=k==='deg'?-1:1;}renderReseau();};
+ACT['gx-zoom']=t=>{GX.cam.z=clamp(GX.cam.z*(+t.dataset.z),.15,4);};
+ACT['gx-fit']=()=>gxFit();
+ACT['gx-link']=t=>{const a=t.dataset.ref;const e=ent(a);openPicker(b=>{addLink(a,b);closeDlg();gxBuild();gxPanel();},{title:`Relier « ${e?e.name:''} » à…`,exclude:a});};
+ACT['graph-open']=t=>{GX.sel=t.dataset.ref;GX.focus=true;GX.depth=2;GX.mode='galaxie';closeDlg();if(cur==='reseau')renderReseau();else location.hash='#reseau';setTimeout(()=>gxFly(GX.sel),80);};
+document.addEventListener('change',e=>{
+  if(e.target.id==='gx-focus'){GX.focus=e.target.checked;renderReseau();return;}
+  if(e.target.id==='gx-depth'){GX.depth=+e.target.value;gxBuild();for(let i=0;i<150;i++)gxTick();gxFit();}
+});
+document.addEventListener('input',e=>{
+  if(e.target.id!=='gx-q')return;const q=norm(e.target.value.trim());const box=$('#gx-sug');if(!q){box.hidden=true;return;}
+  const inG=new Set(GX.nodes.map(n=>n.ref));
+  const L=allEntities().filter(x=>norm(x.name).includes(q)).sort((a,b)=>(inG.has(b.ref)-inG.has(a.ref))||(norm(a.name).startsWith(q)?-1:0)).slice(0,12);
+  box.hidden=false;box.innerHTML=L.length?L.map(x=>`<button class="sritem${inG.has(x.ref)?'':' faint'}" data-act="gx-pick" data-ref="${esc(x.ref)}" style="--gc:var(--gc-${x.t})"><span class="sri">${eIcon(x)}</span><span class="srt"><b>${esc(x.name)}</b><small>${esc(ETYPE[x.t][1])}</small></span></button>`).join(''):'<p class="small muted" style="padding:.4rem .6rem;margin:0">Aucun élément à ce nom.</p>';
+});
+ACT['gx-pick']=t=>{const r=t.dataset.ref;$('#gx-q').value='';$('#gx-sug').hidden=true;if(!GX.idx.has(r)){GX.focus=true;GX.sel=r;GX.mode='galaxie';renderReseau();}else{GX.mode==='galaxie'?gxSelect(r,true):(GX.sel=r,GX.mode='galaxie',renderReseau());}setTimeout(()=>gxFly(r),60);};
+window.addEventListener('resize',()=>{if(cur==='reseau'&&GX.mode==='galaxie')gxDraw();});
+{const t2=Store.touch;Store.touch=function(k){t2.call(this,k);if(cur==='reseau'&&GX.mode==='galaxie'&&['links','notes','quests','lore','videos','maps','npcs'].includes(k)){clearTimeout(GX.rt);GX.rt=setTimeout(()=>{const keep=GX.sel;gxBuild();GX.alpha=.2;GX.sel=keep;gxPanel();},400);}};}
+
 /* =========================================================
    DÉMARRAGE
    ========================================================= */
