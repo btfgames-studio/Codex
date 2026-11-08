@@ -1,6 +1,6 @@
 """Télécharge une fois les icônes de bg3.wiki dans le dossier icons/ du site.
 Lancé par GitHub Actions (fichier .github/workflows/bg3-icons.yml).
-Version 2 : demandes groupées, pauses automatiques quand le wiki dit « trop de demandes »,
+Version 3 : choix des tableaux (TABLES), demandes groupées, pauses automatiques quand le wiki dit « trop de demandes »,
 reprise là où il s'était arrêté si on le relance."""
 import io, json, os, re, time, unicodedata
 import requests
@@ -56,29 +56,37 @@ def val(row, k):
         v = v[0] if v else None
     return v
 
+USEFUL_MISC = {"Potions", "Elixirs", "Coatings", "Grenades", "Arrows", "Alchemical Ingredients", "Alchemical Extracts", "Scrolls", "Books", "Notes", "Slates"}
 wanted = {}  # nom de fichier -> taille
-with_creatures = os.environ.get("WITH_CREATURES") == "true"
-plan = [("weapons", "icon,legacy", "icon", 96), ("equipment", "icon,type,legacy", "icon", 96), ("spells", "icon", "icon", 96)]
-if with_creatures:
-    plan.append(("creatures", "image", "image", 160))
-for table, fields, field, size in plan:
-    try:
-        rows = export(table, fields)
-    except SystemExit:
-        raise
-    except Exception as e:
+# Tableaux à parcourir : variable TABLES, par ex. "weapons,equipment,spells" ou "consumables".
+# Les icônes déjà présentes dans icons/ ne sont jamais retéléchargées.
+tables = [t.strip() for t in (os.environ.get("TABLES") or "weapons,equipment,spells").split(",") if t.strip()]
+if os.environ.get("WITH_CREATURES") == "true" and "creatures" not in tables:
+    tables.append("creatures")
+for table in tables:
+    size = 160 if table == "creatures" else 96
+    rows, field = None, None
+    for fields, f in (("icon,type,legacy", "icon"), ("icon,legacy", "icon"), ("icon", "icon"), ("image", "image")):
         try:
-            rows = export(table, field)  # au cas où un champ n'existe pas
-        except Exception as e2:
-            print(f"{table}: export impossible ({e2})")
+            rows = export(table, fields)
+            field = f
+            break
+        except SystemExit:
+            raise
+        except Exception:
             continue
+    if rows is None:
+        print(f"{table}: tableau ou champ d'image introuvable")
+        continue
     n = 0
     for row in rows:
         if val(row, "legacy"):
             continue
         if re.search(r"camp clothing|camp shoes|underwear", str(val(row, "type") or ""), re.I):
             continue
-        f = val(row, field)
+        if table == "misc_items" and str(val(row, "type") or "") not in USEFUL_MISC:
+            continue
+        f = val(row, field) or val(row, "image")
         if f:
             wanted.setdefault(clean(f), size)
             n += 1
