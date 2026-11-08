@@ -514,6 +514,7 @@ th button.thsort:hover,th button.thsort.on{color:var(--ink)}
   <section class="view" id="v-glossaire" hidden></section>
   <section class="view" id="v-armes" hidden></section>
   <section class="view" id="v-equipements" hidden></section>
+  <section class="view" id="v-alchimie" hidden></section>
   <section class="view" id="v-youtube" hidden></section>
   <section class="view" id="v-quetes" hidden></section>
   <section class="view" id="v-reseau" hidden></section>
@@ -1370,7 +1371,7 @@ const truthy=v=>v===true||v===1||['1','yes','true','oui'].includes(String(v).toL
 function cleanWiki(t){let x=String(t||'');for(let i=0;i<4;i++)x=x.replace(/\{\{[^{}]*?\|([^{}|]*)\}\}/g,'$1').replace(/\{\{([^{}|]*)\}\}/g,'$1');return x.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g,'$1').replace(/'''?/g,'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/[ \t]+/g,' ').trim();}
 function fget(r,...names){for(const n of names)for(const k of [n,n.replace(/_/g,' '),n.replace(/ /g,'_')]){const v=r[k];if(v!=null&&v!==''&&!(Array.isArray(v)&&!v.length))return Array.isArray(v)?v.join(', '):v;}return null;}
 function unwrapRows(o){if(o&&o.cargoquery)o=o.cargoquery;if(!Array.isArray(o))return null;return o.map(r=>r&&r.title&&typeof r.title==='object'?r.title:r).filter(r=>r&&typeof r==='object');}
-function detectKind(rows){const r=rows.find(x=>x)||{};if(rows.slice(0,50).some(x=>('hp' in x)&&('ac' in x)))return 'creatures';if(rows.slice(0,50).some(x=>'spell_level' in x||'spell level' in x||'spell_school' in x||'spell school' in x))return 'spells';if(fget(r,'damage_type')!=null&&fget(r,'handedness','category')!=null)return 'weapons';if(fget(r,'school')!=null)return 'spells';if(fget(r,'type')!=null)return 'equipment';return null;}
+function detectKind(rows){const r=rows.find(x=>x)||{};if(rows.slice(0,300).some(x=>MISC_TYPES.has(String(fget(x,'type')||''))&&('book_author' in x||'book author' in x||'camp_supplies' in x||'action_type' in x||'action type' in x||!('proficiency' in x)&&!('armour_class' in x))))return 'misc';if(rows.slice(0,50).some(x=>('hp' in x)&&('ac' in x)))return 'creatures';if(rows.slice(0,50).some(x=>'spell_level' in x||'spell level' in x||'spell_school' in x||'spell school' in x))return 'spells';if(fget(r,'damage_type')!=null&&fget(r,'handedness','category')!=null)return 'weapons';if(fget(r,'school')!=null)return 'spells';if(fget(r,'type')!=null)return 'equipment';return null;}
 const GROUP_KEYS=Object.entries({'hand crossbow':'handxbow','heavy crossbow':'heavyxbow','light crossbow':'lightxbow','light hammer':'lighthammer','war pick':'warpick',greatclub:'greatclub',greataxe:'greataxe',greatsword:'greatsword',warhammer:'warhammer',battleaxe:'battleaxe',handaxe:'handaxe',quarterstaff:'quarterstaff',quarterstave:'quarterstaff',longsword:'longsword',shortsword:'shortsword',morningstar:'morningstar',longbow:'longbow',shortbow:'shortbow',javelin:'javelin',scimitar:'scimitar',halberd:'halberd',trident:'trident',dagger:'dagger',rapier:'rapier',glaive:'glaive',sickle:'sickle',spear:'spear',flail:'flail',club:'club',mace:'mace',maul:'maul',pike:'pike',dart:'dart',sling:'sling'}).sort((a,b)=>b[0].length-a[0].length);
 const bumpDie=d=>String(d||'').replace(/d(\d+)/,(m,n)=>'d'+({4:6,6:8,8:10,10:12}[n]||n));
 const enFR=t=>DTYPE_EN[String(t||'').toLowerCase()]||normType(t)||'tranchant';
@@ -1442,11 +1443,12 @@ function mergeInto(list,obj,keep){const ix=list.findIndex(x=>x.id===obj.id);if(i
 function importRows(rows){
   const kind=detectKind(rows);if(!kind)return null;let n=0,u=0;
   for(const r of rows){
+    if(kind==='misc'){const m=importMisc(r);if(m==='new')n++;else if(m==='upd')u++;continue;}
     if(kind==='creatures'){(importCreature(r)?n++:u++);continue;}
     if(kind==='spells'){if(truthy(fget(r,'is_weapon_action'))||truthy(fget(r,'is_npc'))||(fget(r,'is_spell')!=null&&!truthy(fget(r,'is_spell'))))continue;const sp=spellFromWiki(r);sp.icon=fget(r,'icon')||null;sp.img=fget(r,'image')||null;if(sp.kind==='spellatk_')sp.kind='attack';(mergeInto(S.spells,sp,['name','desc','classes','dice','up','count','countUp','scale'])==='new'?n++:u++);}
     else{const it=kind==='weapons'?weaponFromWiki(r):equipFromWiki(r);(mergeInto(S.customItems,it,['name','act','source','price','desc','spell'])==='new'?n++:u++);}
   }
-  Store.touch(kind==='spells'?'spells':kind==='creatures'?'npcs':'items');rebuildItems();
+  Store.touch(kind==='spells'?'spells':kind==='creatures'?'npcs':'items');if(kind==='misc')Store.touch('lore');rebuildItems();
   return {kind,n,u};
 }
 function importText(txt){
@@ -1456,13 +1458,13 @@ function importText(txt){
   if(rows[0].cat&&rows[0].name&&!rows[0]._pageName){let n=0;for(const it of rows){if(!it.name||!it.cat)continue;it.id=it.id?String(it.id):'c-'+uid();mergeInto(S.customItems,it,[]);n++;}Store.touch('items');rebuildItems();renderCurrent();return `${n} objet(s) importé(s).`;}
   const r=importRows(rows);if(!r)return 'Format non reconnu. Envoie-moi le début du fichier, j’adapterai l’importateur.';
   renderCurrent();
-  return `${{weapons:'Armes',equipment:'Équipements',spells:'Sorts',creatures:'Créatures et PNJ'}[r.kind]} : ${r.n} ajouté(s), ${r.u} mis à jour. Les noms restent en anglais ; tu peux les traduire dans chaque fiche.`;
+  return `${{weapons:'Armes',equipment:'Équipements',spells:'Sorts',creatures:'Créatures et PNJ',misc:'Alchimie, parchemins et livres'}[r.kind]} : ${r.n} ajouté(s), ${r.u} mis à jour. Les noms restent en anglais ; tu peux les traduire dans chaque fiche.`;
 }
 function dataIO(){
   openDlg('Importer depuis bg3.wiki',`
   <p>Le wiki propose un export de ses tableaux. Le site bloque les robots, mais pas toi : ouvre chaque lien ci-dessous dans ton navigateur.</p>
   <ol class="steps">
-    <li>Clique sur un lien : <a href="${WIKI_LINKS.weapons}" target="_blank" rel="noopener">armes</a>, <a href="${WIKI_LINKS.equipment}" target="_blank" rel="noopener">équipements</a> (armures, bijoux, vêtements…), <a href="${WIKI_LINKS.spells}" target="_blank" rel="noopener">sorts</a>, <a href="${WIKI_LINKS.creatures}" target="_blank" rel="noopener">créatures et PNJ</a>.</li>
+    <li>Clique sur un lien : <a href="${WIKI_LINKS.weapons}" target="_blank" rel="noopener">armes</a>, <a href="${WIKI_LINKS.equipment}" target="_blank" rel="noopener">équipements</a> (armures, bijoux, vêtements…), <a href="${WIKI_LINKS.spells}" target="_blank" rel="noopener">sorts</a>, <a href="${WIKI_LINKS.creatures}" target="_blank" rel="noopener">créatures et PNJ</a>, <a href="${WIKI_LINKS.misc}" target="_blank" rel="noopener">objets divers (alchimie, parchemins, livres)</a>.</li>
     <li>La page affiche ou télécharge un long texte qui commence par <code>[</code>. Enregistre le fichier, ou sélectionne tout (Ctrl+A) et copie (Ctrl+C).</li>
     <li>Charge le fichier ou colle le texte ici. Tu peux recommencer plus tard : tes corrections (acte, lieu, prix, nom français) sont conservées.</li>
   </ol>
@@ -1935,6 +1937,7 @@ function renderLoreEditor(){
   const spName=id=>(SPELLS.get(id)||{name:'(sort supprimé)'}).name;
   E.innerHTML=`<div class="stack">
     <input class="titleinput" data-l="title" data-fk="lt" value="${esc(n.title)}" placeholder="Titre" aria-label="Titre">
+    ${n.author||n.summary||n.wikiPage?`<p class="small muted" style="margin:0;white-space:pre-wrap">${n.author?'Auteur : '+esc(n.author)+'\n':''}${n.summary?esc(n.summary):''}${n.wikiPage?` <a href="${wikiUrl(n.wikiPage)}" target="_blank" rel="noopener">fiche bg3.wiki</a>`:''}</p>`:''}
     <div class="formgrid">
       <label>Type<select data-l="kind">${LORE_KINDS.map(k=>opt(k,k,n.kind)).join('')}</select></label>
       <label>Acte<select data-l="act">${opt('','—',n.act)}${[1,2,3].map(a=>opt(a,'Acte '+a,n.act)).join('')}</select></label>
@@ -2408,16 +2411,16 @@ const GV={armes:{q:'',cat:'',grp:'',rng:'',act:'',rar:'',src:'',sort:'name',dir:
 function renderItems(kind){
   Object.assign(G,GV[kind],{kind});
   const v=$('#v-'+kind);const isW=kind==='armes';
-  const pool=[...ITEMS.values()].filter(i=>isW?i.cat==='Arme':i.cat!=='Arme');
+  const pool=[...ITEMS.values()].filter(i=>itemKindOk(i,kind));
   const srcs=[...new Set(pool.map(i=>i.source).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
   v.innerHTML=`
-  <h2>${isW?'Armes':'Équipements'}</h2>
-  <p class="lead">${isW?'Toutes les armes du jeu.':'Armures, boucliers, casques, capes, gants, bottes, bijoux, potions, parchemins et le reste.'} Clique sur une ligne pour voir la fiche, ajouter une image et l’équiper.</p>
+  <h2>${isW?'Armes':kind==='alchimie'?'Alchimie':'Équipements'}</h2>
+  <p class="lead">${isW?'Toutes les armes du jeu.':kind==='alchimie'?'Potions, élixirs, poisons, huiles, grenades et ingrédients. Relie-les aux quêtes, PNJ, lieux et ressources comme le reste.':'Armures, boucliers, casques, capes, gants, bottes, bijoux, parchemins et le reste.'} Clique sur une ligne pour voir la fiche, ajouter une image et l’équiper.</p>
   <div class="gfilters">
     <label>Rechercher<input type="search" id="g-q" value="${esc(G.q)}" placeholder="Nom, effet, lieu…"></label>
     ${isW?`<label>Famille<select id="g-grp">${opt('','Toutes',G.grp)}${Object.entries(WGROUPS).sort((a,b)=>a[1].localeCompare(b[1],'fr')).map(([k,n])=>opt(k,n,G.grp)).join('')}</select></label>
     <label>Portée<select id="g-rng">${opt('','Toutes',G.rng)}${opt('m','Corps à corps',G.rng)}${opt('r','Distance',G.rng)}</select></label>`
-    :`<label>Catégorie<select id="g-cat">${opt('','Toutes',G.cat)}${CATS.filter(c=>c!=='Arme').map(c=>opt(c,c,G.cat)).join('')}</select></label>`}
+    :`<label>Catégorie<select id="g-cat">${opt('','Toutes',G.cat)}${(kind==='alchimie'?CATS.filter(c=>ALCH_SET.has(c)):CATS.filter(c=>c!=='Arme'&&!ALCH_SET.has(c))).map(c=>opt(c,c,G.cat)).join('')}</select></label>`}
     <label>Acte<select id="g-act">${opt('','Tous',G.act)}${[0,1,2,3].map(a=>opt(a,actLabel(a),G.act)).join('')}${opt('?','À préciser',G.act)}</select></label>
     <label>Rareté<select id="g-rar">${opt('','Toutes',G.rar)}${Object.entries(RAR).map(([k,r])=>opt(k,r.n,G.rar)).join('')}</select></label>
     <label>Marchand ou lieu<select id="g-src">${opt('','Tous',G.src)}${srcs.map(s=>opt(s,s,G.src)).join('')}</select></label>
@@ -2433,7 +2436,7 @@ function renderItems(kind){
 }
 function glossFiltered(){
   const q=G.q.trim().toLowerCase();const isW=G.kind==='armes';
-  let list=[...ITEMS.values()].filter(i=>!isHiddenItem(i)&&(isW?i.cat==='Arme':i.cat!=='Arme')&&
+  let list=[...ITEMS.values()].filter(i=>!isHiddenItem(i)&&itemKindOk(i,G.kind)&&
     (!G.cat||i.cat===G.cat)&&(!G.grp||(i.w&&i.w.group===G.grp))&&(!G.rng||(i.w&&(G.rng==='r')===!!i.w.ranged))&&
     (G.act===''||(G.act==='?'?(i.act==null||i.act===''):(i.act!=null&&i.act!==''&&String(+i.act||0)===G.act)))&&(!G.rar||i.rarity===G.rar)&&(!G.src||i.source===G.src)&&
     (!q||[i.name,i.en,i.desc,i.source,i.cat].some(x=>String(x||'').toLowerCase().includes(q))));
@@ -2450,7 +2453,7 @@ function renderGlossBody(){
   $('#g-body').innerHTML=shown.length?shown.map(i=>`<tr data-act="item-open" data-id="${esc(i.id)}" tabindex="0">
     <td class="iname" style="${rc(i.rarity)}">${thumb('item:'+i.id)||'<span class="noimg" aria-hidden="true"></span>'}${esc(i.name)}${i.demo?'<span class="demo">à vérifier</span>':''}${i.en&&i.en!==i.name?`<small>${esc(i.en)}</small>`:''}</td>
     <td>${isW?esc(WGROUPS[i.w&&i.w.group]||'')+`<small class="muted" style="display:block">${i.w&&i.w.ranged?'Distance':'Corps à corps'}</small>`:esc(i.cat)}</td>
-    <td class="small">${isW?weaponLine(i.w):i.a?`${i.a.type==='shield'?'CA +':'CA '}${i.a.base??'?'}`:i.heal?'Soins '+esc(i.heal):esc(bonusLine(i.bonus))}</td>
+    <td class="small">${isW?weaponLine(i.w):i.a?`${i.a.type==='shield'?'CA +':'CA '}${i.a.base??'?'}`:i.heal?'Soins '+esc(i.heal):(bonusLine(effB(i))?esc(bonusLine(effB(i))):esc(String(i.desc||'').split('\n')[0].slice(0,90)))}</td>
     <td class="rar" style="${rc(i.rarity)}">${esc((RAR[i.rarity]||{}).n||'')}</td>
     <td>${actLabel(i.act)}</td>
     <td>${esc(i.source||'')}</td>
@@ -3256,6 +3259,7 @@ function renderLoreEditor(){
   if(!n){E.innerHTML='<p class="empty-state">Choisis un écrit à gauche, ou ajoutes-en un.</p>';return;}
   E.innerHTML=`<div class="stack">
     <input class="titleinput" data-l="title" data-fk="lt" value="${esc(n.title)}" placeholder="Titre" aria-label="Titre">
+    ${n.author||n.summary||n.wikiPage?`<p class="small muted" style="margin:0;white-space:pre-wrap">${n.author?'Auteur : '+esc(n.author)+'\n':''}${n.summary?esc(n.summary):''}${n.wikiPage?` <a href="${wikiUrl(n.wikiPage)}" target="_blank" rel="noopener">fiche bg3.wiki</a>`:''}</p>`:''}
     <div class="formgrid">
       <label>Type<select data-l="kind">${LORE_KINDS.map(k=>opt(k,k,n.kind)).join('')}</select></label>
       <label>Acte<select data-l="act">${opt('','—',n.act)}${[1,2,3].map(a=>opt(a,'Acte '+a,n.act)).join('')}</select></label>
@@ -4195,7 +4199,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='19';
+const APP_VERSION='21';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -4604,6 +4608,86 @@ document.addEventListener('input',e=>{
 ACT['gx-pick']=t=>{const r=t.dataset.ref;$('#gx-q').value='';$('#gx-sug').hidden=true;if(!GX.idx.has(r)){GX.focus=true;GX.sel=r;GX.mode='galaxie';renderReseau();}else{GX.mode==='galaxie'?gxSelect(r,true):(GX.sel=r,GX.mode='galaxie',renderReseau());}setTimeout(()=>gxFly(r),60);};
 window.addEventListener('resize',()=>{if(cur==='reseau'&&GX.mode==='galaxie')gxDraw();});
 {const t2=Store.touch;Store.touch=function(k){t2.call(this,k);if(cur==='reseau'&&GX.mode==='galaxie'&&['links','notes','quests','lore','videos','maps','npcs'].includes(k)){clearTimeout(GX.rt);GX.rt=setTimeout(()=>{const keep=GX.sel;gxBuild();GX.alpha=.2;GX.sel=keep;gxPanel();},400);}};}
+
+/* =========================================================
+   VERSION 20 : ALCHIMIE
+   ========================================================= */
+const ALCH_CATS=['Potion','Élixir','Poison','Huile','Grenade','Flèche spéciale','Parchemin','Ingrédient','Extrait'];
+['Poison','Huile','Grenade','Flèche spéciale','Ingrédient','Extrait'].forEach(c=>{if(!CATS.includes(c))CATS.push(c);});
+const ALCH_SET=new Set(ALCH_CATS.filter(c=>c!=='Parchemin'));
+function itemKindOk(i,kind){if(kind==='armes')return i.cat==='Arme';if(kind==='alchimie')return ALCH_SET.has(i.cat);return i.cat!=='Arme'&&!ALCH_SET.has(i.cat);}
+GV.alchimie={q:'',cat:'',grp:'',rng:'',act:'',rar:'',src:'',sort:'name',dir:1};
+VIEWS.splice(VIEWS.findIndex(v=>v[0]==='sorts')+1,0,['alchimie','Alchimie']);
+ICO.alchimie='<path d="M9.5 3h5M10 3v5.2L5 17.5A2.4 2.4 0 0 0 7.1 21h9.8a2.4 2.4 0 0 0 2.1-3.5L14 8.2V3"/><path d="M7.2 14h9.6"/><circle cx="10.5" cy="17" r=".8" fill="currentColor"/><circle cx="13.6" cy="18.3" r=".6" fill="currentColor"/>';
+{const g=NAV.find(x=>x[0]==='Savoir');const i=g[1].findIndex(x=>x[0]==='sorts');g[1].splice(i+1,0,['alchimie','Alchimie','alchimie']);}
+function renderCurrent(){({accueil:renderAccueil,personnage:renderPerso,sandbox:renderSandbox,armes:()=>renderItems('armes'),equipements:()=>renderItems('equipements'),alchimie:()=>renderItems('alchimie'),sorts:renderSorts,biblio:renderBiblio,cartes:renderCartes,carnet:renderCarnet,quetes:renderQuetes,reseau:renderReseau,pnj:renderPnj,youtube:renderYoutube})[cur]();}
+
+/* =========================================================
+   VERSION 21 : IMPORT ALCHIMIE, PARCHEMINS ET LIVRES
+   ========================================================= */
+WIKI_LINKS.misc='https://bg3.wiki/w/index.php?title=Special:CargoExport&tables=misc_items&fields=_pageName,name,type,legacy,icon,image,description,quote,rarity,action_type,effect,condition_duration,condition_save,price,book_author&limit=5000&format=json';
+const MISC_ITEM={'Potions':'Potion','Elixirs':'Élixir','Coatings':'Huile','Grenades':'Grenade','Arrows':'Flèche spéciale','Alchemical Ingredients':'Ingrédient','Alchemical Extracts':'Extrait','Scrolls':'Parchemin'};
+const MISC_LORE={'Books':'Livre','Notes':'Note','Slates':'Inscription'};
+const MISC_TYPES=new Set([...Object.keys(MISC_ITEM),...Object.keys(MISC_LORE),'Consumables','Containers','Drinks','Dyes','Food','Instruments','Keys','Misc']);
+function importMisc(r){
+  const type=String(fget(r,'type')||'');const page=fget(r,'_pageName','name');const name=decEnt(String(fget(r,'name')||page));
+  if(fget(r,'legacy'))return 'skip';
+  const clean=t=>cleanWiki(cleanWikiHTML(t||''));
+  if(MISC_ITEM[type]){
+    const eff=clean(fget(r,'effect'));const des=clean(fget(r,'description'));
+    const extra=[fget(r,'condition_duration')?'Durée : '+clean(fget(r,'condition_duration')):'',fget(r,'condition_save')?'Sauvegarde : '+clean(fget(r,'condition_save')):'',fget(r,'action_type')?'Utilisation : '+clean(fget(r,'action_type')):''].filter(Boolean).join('\n');
+    const it={id:'m-'+slug(page),name,en:name,cat:MISC_ITEM[type],rarity:rarFR(fget(r,'rarity')),act:null,source:'',price:fget(r,'price')!=null?+String(fget(r,'price')).replace(/[^\d.]/g,'')||null:null,wiki:true,wtype:type,
+      desc:[eff,des,extra].filter(Boolean).join('\n\n')};
+    const h=(eff+' '+des).match(/(\d+d\d+(?:\s*\+\s*\d+)?)\s*(?:hit points|HP)/i);if(h)it.heal=h[1].replace(/\s+/g,'');
+    const ic=fget(r,'icon'),im=fget(r,'image');if(ic)it.icon=ic;if(im)it.img=im;
+    return mergeInto(S.customItems,it,['name','act','source','price','spell']);
+  }
+  if(MISC_LORE[type]){
+    const id='bk-'+slug(page);const ex=S.lore.find(x=>x.id===id)||S.lore.find(x=>!x.wikiPage&&norm(x.title)===norm(name));
+    const o={title:name,kind:MISC_LORE[type],author:clean(fget(r,'book_author'))||'',summary:[clean(fget(r,'description')),clean(fget(r,'quote'))].filter(Boolean).join('\n'),wikiPage:page,wiki:true,icon:fget(r,'icon')||null};
+    if(ex){Object.assign(ex,{author:ex.author||o.author,summary:o.summary,wikiPage:page,wiki:true,icon:o.icon});return 'upd';}
+    S.lore.push({id,title:o.title,kind:o.kind,act:'',place:'',text:'',items:[],npcs:[],spells:[],marker:null,updated:Date.now(),...o});return 'new';
+  }
+  return 'skip';
+}
+{const s2=imgSrc;imgSrc=function(key,big){if(key&&key.startsWith('lore:')&&!S.images[key]){if(!STANDALONE||S.prefs.wikiIcons===false)return null;const l=S.lore.find(x=>x.id===key.slice(5));if(!l||!l.icon)return null;const n=String(l.icon).replace(/^(File|Fichier):/i,'').trim();return (typeof LOCAL_ICONS!=='undefined'&&LOCAL_ICONS&&LOCAL_ICONS[n])?'icons/'+LOCAL_ICONS[n]:wikiFile(n);}return s2(key,big);};}
+/* ---------- textes des livres (fichier data/books.json créé par le robot GitHub) ---------- */
+async function importBookTexts(){
+  if(!STANDALONE||!/^https?:/.test(location.protocol)){toast('Les textes des livres se chargent depuis ta page GitHub, une fois le robot « Livres BG3 » lancé.');return;}
+  let j;try{const r=await fetch('data/books.json',{cache:'no-cache'});if(!r.ok)throw 0;j=await r.json();}catch(e){toast('Fichier data/books.json introuvable : lance d’abord le robot « Livres BG3 » dans l’onglet Actions de ton dépôt.');return;}
+  let n=0,f=0,k=0;
+  for(const b of (j.books||[])){
+    const id='bk-'+slug(b.page);let x=S.lore.find(l=>l.id===id)||S.lore.find(l=>l.wikiPage===b.page)||S.lore.find(l=>!l.wikiPage&&norm(l.title)===norm(decEnt(b.name||b.page)));
+    if(!x){x={id,title:decEnt(b.name||b.page),kind:MISC_LORE[b.type]||'Livre',act:'',place:'',text:'',items:[],npcs:[],spells:[],marker:null,updated:Date.now(),wiki:true,wikiPage:b.page,author:b.author||'',summary:'',icon:b.icon||null};S.lore.push(x);n++;}
+    if(b.text&&!String(x.text||'').trim()){x.text=b.text;f++;}else if(b.text)k++;
+    if(!x.author&&b.author)x.author=b.author;if(!x.icon&&b.icon)x.icon=b.icon;
+  }
+  Store.touch('lore');if(cur==='biblio')renderBiblio();
+  toast(`${n} écrit(s) ajouté(s), ${f} texte(s) rempli(s)${k?`, ${k} texte(s) déjà écrits par toi conservés`:''}.`);
+}
+ACT['books-import']=()=>importBookTexts();
+function renderBiblio(){
+  if(BV.sel&&!S.lore.find(n=>n.id===BV.sel))BV.sel=null;
+  const nw=S.lore.filter(l=>l.wiki).length;const nt=S.lore.filter(l=>String(l.text||'').trim()).length;
+  $('#v-biblio').innerHTML=`<h2>Bibliothèque</h2>
+  <p class="lead">Les livres, notes, tablettes, lettres et documents du jeu. Lie-les à un objet, un PNJ, un sort ou un lieu : ils apparaîtront sur leurs fiches.</p>
+  <div class="split">
+    <div class="panel">
+      <div class="row"><button class="primary" data-act="lore-new">Ajouter un écrit</button><button data-act="data-io" title="Lien « objets divers » : livres, notes, tablettes">Importer la liste du wiki</button><button data-act="books-import" title="Remplit le texte des livres depuis data/books.json">Importer les textes</button></div>
+      <p class="small muted" style="margin:.4rem 0 0">${S.lore.length} écrits, dont ${nw} du wiki ; ${nt} avec leur texte.</p>
+      <div class="row" style="margin-top:.6rem"><input type="search" id="bq" value="${esc(BV.q)}" placeholder="Rechercher dans les textes…" style="flex:1" aria-label="Rechercher"><select id="bkind" aria-label="Type">${opt('','Tous',BV.kind)}${LORE_KINDS.map(k=>opt(k,k,BV.kind)).join('')}</select></div>
+      <ul class="list" id="lorelist"></ul>
+    </div>
+    <div class="panel" id="loreed"></div>
+  </div>`;
+  renderLoreList();renderLoreEditor();
+}
+function renderLoreList(){
+  const L=$('#lorelist');if(!L)return;const q=norm(BV.q);
+  const list=S.lore.filter(n=>(!BV.kind||n.kind===BV.kind)&&(!q||norm(n.title+' '+(n.author||'')+' '+stripTok(n.text)+' '+(n.place||'')).includes(q))).sort((a,b)=>a.title.localeCompare(b.title,'fr'));
+  const shown=list.slice(0,500);
+  L.innerHTML=shown.length?shown.map(n=>`<li><button data-act="lore-open" data-id="${n.id}" aria-current="${n.id===BV.sel}" class="qrow">${eIcon(ent('lore:'+n.id)||{t:'lore',id:n.id,icon:'📖'},'qthumb')}<span><span class="t">${esc(n.title||'Sans titre')}<span class="kindtag">${esc(n.kind||'')}</span></span><span class="s">${[n.author,n.act?'Acte '+n.act:'',n.place,String(n.text||'').trim()?'':'texte à remplir'].filter(Boolean).map(esc).join(', ')}</span></span></button></li>`).join('')+(list.length>500?`<li class="small muted" style="padding:.5rem">${list.length-500} autres : affine ta recherche.</li>`:''):'<li class="empty-state">Ta bibliothèque est vide pour l’instant.</li>';
+}
 
 /* =========================================================
    DÉMARRAGE
