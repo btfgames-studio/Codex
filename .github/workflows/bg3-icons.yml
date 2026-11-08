@@ -2,6 +2,10 @@ name: Icônes BG3
 on:
   workflow_dispatch:
     inputs:
+      tables:
+        description: "Tableaux du wiki à parcourir, séparés par des virgules (les icônes déjà présentes sont sautées)"
+        type: string
+        default: "weapons,equipment,spells"
       creatures:
         description: "Inclure aussi les portraits des créatures (plus long)"
         type: boolean
@@ -22,11 +26,12 @@ jobs:
           python-version: "3.12"
       - run: pip install requests pillow
       - name: Télécharger les icônes (tranquillement)
-        run: python scripts/bg3_icons.py
+        run: python -u scripts/bg3_icons.py
         timeout-minutes: 300
         continue-on-error: true
         env:
           WITH_CREATURES: ${{ inputs.creatures }}
+          TABLES: ${{ inputs.tables }}
       - name: Enregistrer les icônes dans le dépôt (même si c'est incomplet)
         if: always()
         run: |
