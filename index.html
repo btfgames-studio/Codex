@@ -534,14 +534,20 @@ body[data-view="accueil"] .boardwrap{flex:1;min-height:0;height:auto!important;b
 .bcard.msel{outline:2px dashed var(--accent);outline-offset:4px}
 .bcard.hl{box-shadow:0 0 0 3px #f5c542,0 0 22px 6px rgba(245,197,66,.65)!important;animation:hlpulse 2.4s ease-in-out infinite}
 @keyframes hlpulse{50%{box-shadow:0 0 0 3px #ffd75e,0 0 34px 10px rgba(255,215,94,.85)}}
-.bcard.dead-red{border-color:#c62828!important;background:linear-gradient(rgba(198,40,40,.32),rgba(198,40,40,.32)),var(--surface)!important}
-.bcard.dead-black{border-color:#000!important;background:#0d0b10!important;color:#9a93a6}
-.bcard.dead-red .bhead{background:rgba(198,40,40,.55)!important}
-.bcard.dead-black .bhead{background:#000!important;color:#bbb}
+.bcard.side-ally{border-color:#2fa864!important;background:linear-gradient(rgba(47,168,100,.2),rgba(47,168,100,.2)),var(--surface)!important}
+.bcard.side-ally .bhead{background:rgba(47,168,100,.5)!important}
+.bcard.side-enemy{border-color:#e04848!important;background:linear-gradient(rgba(224,72,72,.2),rgba(224,72,72,.2)),var(--surface)!important}
+.bcard.side-enemy .bhead{background:rgba(224,72,72,.5)!important}
+.bside{font-size:1rem;padding:0 .25rem!important}
+.bcard.dead-red,.bcard.dead-black{filter:grayscale(.85) brightness(.8);opacity:.82}
+.bcard.dead-red{border-color:#7a5c5c!important;background:linear-gradient(rgba(110,80,80,.3),rgba(110,80,80,.3)),var(--surface)!important}
+.bcard.dead-black{border-color:#000!important;background:#0d0b10!important;color:#8e8898}
+.bcard.dead-red .bhead{background:rgba(110,80,80,.55)!important}
+.bcard.dead-black .bhead{background:#000!important;color:#aaa}
 .bcard.dead-red .bt,.bcard.dead-black .bt{text-decoration:line-through}
-.bcard.dead-red img,.bcard.dead-black img{filter:grayscale(1) brightness(.7)}
-.bcard.dead-red::after,.bcard.dead-black::after{content:"☠";position:absolute;right:10px;bottom:2px;font-size:70px;line-height:1;opacity:.22;pointer-events:none}
+.bcard.dead-red::after,.bcard.dead-black::after{content:"☠";position:absolute;right:10px;bottom:2px;font-size:70px;line-height:1;opacity:.25;pointer-events:none}
 .bcard.dead-black::after{opacity:.35;color:#fff}
+.bcard.dead-red:hover,.bcard.dead-black:hover{opacity:1}
 .bband{position:absolute;border:1.5px dashed var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);pointer-events:none;z-index:6000}
 .multibar{display:inline-flex;flex-wrap:wrap;gap:.3rem;align-items:center;padding-right:.5rem;margin-right:.3rem;border-right:1px solid var(--line)}
 .multibar .bsep{display:none}
@@ -3892,7 +3898,7 @@ function cardHTML(c){
     <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${c.type!=='graph'&&e?eIcon(e):icon}</span><span class="bt">${esc(title)}</span>
       ${c.type==='sticky'?`<span class="bcolors">${['#f5d76e','#ff9db0','#9fe2bf','#a8c8ff','#d7b8ff'].map(col=>`<button class="bcol" data-act="sticky-color" data-cid="${c.id}" data-c="${col}" style="background:${col}" aria-label="Couleur"></button>`).join('')}</span>`:''}
       ${e?`<button class="bbtn" data-act="ref-open" data-ref="${esc(c.ref)}" title="Ouvrir la fiche" aria-label="Ouvrir la fiche">↗</button>`:''}
-      ${e&&e.t==='npc'?`<button class="bbtn" data-act="card-dead" data-cid="${c.id}" title="Mort (clic : rouge, puis noir, puis vivant)" aria-label="Changer l’état mort ou vivant">☠</button>`:''}<button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
+      ${e&&e.t==='npc'?`<button class="bbtn bside" data-act="card-side" data-cid="${c.id}" title="Allié ou ennemi (clic : allié, puis ennemi, puis neutre)" aria-label="Allié ou ennemi">${c.side==='ally'?'🙂':c.side==='enemy'?'😠':'😐'}</button>`:''}${e&&e.t==='npc'?`<button class="bbtn" data-act="card-dead" data-cid="${c.id}" title="Mort (clic : rouge, puis noir, puis vivant)" aria-label="Changer l’état mort ou vivant">☠</button>`:''}<button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
     <div class="bbody">${cardBody(c)}</div>
     <span class="bresize" data-resize="${c.id}" title="Redimensionner" aria-hidden="true"></span></div>`;
 }
@@ -4021,10 +4027,10 @@ function cardHTML(c){
 function _cardHTMLpinned(c){
   const e=ent(c.ref);const t=c.type==='graph'?'graph':(e?e.t:'note');
   const title=e?(c.type==='graph'?'Réseau : '+e.name:e.name):'Élément supprimé';const icon=c.type==='graph'?'🕸️':e?e.icon:'❔';
-  return `<div class="bcard bc-${t}${c.hl?' hl':''}${c.dead?' dead-'+c.dead:''}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--gc:var(--gc-${t})">
+  return `<div class="bcard bc-${t}${c.hl?' hl':''}${c.side?' side-'+c.side:''}${c.dead?' dead-'+c.dead:''}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;--gc:var(--gc-${t})">
     <div class="bhead" title="Glisse pour déplacer"><span class="bi" aria-hidden="true">${c.type!=='graph'&&e?eIcon(e):icon}</span><span class="bt">${esc(title)}</span>
       ${e?`<button class="bbtn" data-act="ref-open" data-ref="${esc(c.ref)}" title="Ouvrir la fiche" aria-label="Ouvrir la fiche">↗</button>`:''}
-      ${e&&e.t==='npc'?`<button class="bbtn" data-act="card-dead" data-cid="${c.id}" title="Mort (clic : rouge, puis noir, puis vivant)" aria-label="Changer l’état mort ou vivant">☠</button>`:''}<button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
+      ${e&&e.t==='npc'?`<button class="bbtn bside" data-act="card-side" data-cid="${c.id}" title="Allié ou ennemi (clic : allié, puis ennemi, puis neutre)" aria-label="Allié ou ennemi">${c.side==='ally'?'🙂':c.side==='enemy'?'😠':'😐'}</button>`:''}${e&&e.t==='npc'?`<button class="bbtn" data-act="card-dead" data-cid="${c.id}" title="Mort (clic : rouge, puis noir, puis vivant)" aria-label="Changer l’état mort ou vivant">☠</button>`:''}<button class="bbtn" data-act="board-unpin" data-cid="${c.id}" title="Retirer de l’accueil" aria-label="Retirer de l’accueil">✕</button></div>
     <div class="bbody">${cardBody(c)}</div>
     <span class="bresize" data-resize="${c.id}" title="Redimensionner" aria-hidden="true"></span></div>`;
 }
@@ -4264,7 +4270,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='23';
+const APP_VERSION='24';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5034,6 +5040,7 @@ function multiBarHTML(){
   return `<span class="multibar"><b>${BMULTI.size}</b> sélectionné${BMULTI.size>1?'s':''}
     <button class="small" data-act="m-size" data-f="1.15" title="Agrandir">⤢ Agrandir</button><button class="small" data-act="m-size" data-f="0.87" title="Réduire">⤡ Réduire</button>
     <button class="small" data-act="m-hl" title="Mettre en avant">★ Surbrillance</button>
+    ${hasNpc?'<button class="small" data-act="m-side" data-v="ally">🙂 Allié</button><button class="small" data-act="m-side" data-v="enemy">😠 Ennemi</button><button class="small" data-act="m-side" data-v="">😐 Neutre</button>':''}
     ${hasNpc?'<button class="small" data-act="m-dead" data-v="red">☠ Mort (rouge)</button><button class="small" data-act="m-dead" data-v="black">☠ Mort (noir)</button><button class="small" data-act="m-dead" data-v="">♥ Vivant</button>':''}
     <button class="small danger" data-act="m-del" title="Retirer du tableau (Retour arrière)">Supprimer</button><span class="bsep"></span></span>`;
 }
@@ -5140,6 +5147,9 @@ document.addEventListener('pointerdown',e=>{
 },true);
 {let sx=null;document.addEventListener('touchstart',e=>{if(e.target.closest('#side'))sx=e.touches[0].clientX;},{passive:true});
  document.addEventListener('touchend',e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(dx<-60)sideClose();},{passive:true});}
+
+ACT['card-side']=t=>{const c=S.board.cards.find(x=>x.id===t.dataset.cid);if(!c)return;c.side=!c.side?'ally':c.side==='ally'?'enemy':'';Store.touch('board');refreshCards([c.id]);toast(c.side==='ally'?'🙂 Allié.':c.side==='enemy'?'😠 Ennemi.':'😐 Neutre.');};
+ACT['m-side']=t=>{for(const c of selCards())if(c.ref&&c.ref.startsWith('npc:'))c.side=t.dataset.v||'';Store.touch('board');refreshCards([...BMULTI]);renderCtx();};
 
 /* =========================================================
    DÉMARRAGE
