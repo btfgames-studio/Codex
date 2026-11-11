@@ -555,6 +555,13 @@ body[data-view="accueil"] .boardwrap{flex:1;min-height:0;height:auto!important;b
 .chk .cb{cursor:pointer;user-select:none;font-size:1.05em;line-height:1.35;flex:none}
 .chk.done{color:rgba(0,0,0,.33);text-decoration:line-through}
 .bc-text .chk.done{color:var(--muted)}
+.mbadge{font-size:.66rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--accent-soft);color:var(--ink);border-radius:4px;padding:0 .35em;margin-left:.4em;align-self:center}
+.mbox{border:1px dashed var(--accent);border-radius:10px;padding:.5rem .7rem;background:color-mix(in srgb,var(--accent) 7%,transparent);display:flex;flex-direction:column;gap:.35rem}
+.mrow{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.mname{font-weight:700}
+.mlist{display:flex;flex-direction:column;gap:.4rem;max-height:46vh;overflow:auto}
+::highlight(mention-sure){text-decoration-line:underline;text-decoration-style:dotted;text-decoration-thickness:2px;text-decoration-color:#a98bff;background-color:rgba(169,139,255,.14)}
+::highlight(mention-prob){background-color:rgba(245,197,66,.28);text-decoration-line:underline;text-decoration-style:wavy;text-decoration-color:#e0a526}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -3185,7 +3192,7 @@ function linksPanel(ref){
     <div class="links-head"><h3>Liens <span class="lcount">${nb.length}</span></h3>
       <div class="row"><button class="small" data-act="pin" data-ref="${esc(ref)}" title="Épingler sur l’accueil">📌 Épingler</button><button class="small primary" data-act="link-add" data-ref="${esc(ref)}">+ Relier à…</button><button class="small" data-act="graph-open" data-ref="${esc(ref)}">Voir le réseau</button></div></div>
     ${groups.length?groups.map(([t,list])=>`<div class="lgroup"><span class="lgtitle">${ETYPE[t][0]} ${ETYPE[t][2]}</span><div class="lchips">${list.map(x=>{const rem=x.srcs.some(s=>s.kind!=='text'&&s.kind!=='sub');
-      return `<span class="lchip" style="--gc:var(--gc-${t})"><button data-act="ref-open" data-ref="${esc(x.ref)}" title="Ouvrir">${eIcon(x.e)} ${esc(x.e.name)}${x.e.sub?`<small>${esc(x.e.sub)}</small>`:''}</button>${rem?`<button class="lx" data-act="link-del" data-a="${esc(ref)}" data-b="${esc(x.ref)}" aria-label="Retirer le lien avec ${esc(x.e.name)}" title="Retirer le lien">✕</button>`:`<span class="ltext" title="${x.srcs.some(s=>s.kind==='sub')?'Carte intérieure':'Lien écrit dans un texte : retire-le dans le texte'}">${x.srcs.some(s=>s.kind==='sub')?'🚪':'✎'}</span>`}</span>`;}).join('')}</div></div>`).join('')
+      return `<span class="lchip" style="--gc:var(--gc-${t})"><button data-act="ref-open" data-ref="${esc(x.ref)}" title="Ouvrir">${eIcon(x.e)} ${esc(x.e.name)}${x.e.sub?`<small>${esc(x.e.sub)}</small>`:''}${x.srcs.every(s=>s.kind==='mention')?'<span class="mbadge" title="Relié automatiquement : ce nom est cité dans le texte">mentionné</span>':''}</button>${rem?`<button class="lx" data-act="link-del" data-a="${esc(ref)}" data-b="${esc(x.ref)}" aria-label="Retirer le lien avec ${esc(x.e.name)}" title="Retirer le lien">✕</button>`:`<span class="ltext" title="${x.srcs.some(s=>s.kind==='sub')?'Carte intérieure':'Lien écrit dans un texte : retire-le dans le texte'}">${x.srcs.some(s=>s.kind==='sub')?'🚪':'✎'}</span>`}</span>`;}).join('')}</div></div>`).join('')
     :'<p class="small muted" style="margin:.3rem 0 0">Aucun lien pour l’instant. Clique sur « Relier à… », ou sélectionne un mot dans un texte puis « Lier la sélection ».</p>'}
   </section>`;
 }
@@ -4270,7 +4277,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='24';
+const APP_VERSION='26';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -4602,7 +4609,7 @@ function gxFit(){if(!GX.nodes.length)return;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;fo
 function gxFly(ref){const n=GX.idx.get(ref);if(!n)return;const from={...GX.cam};const to={x:n.x,y:n.y,z:Math.max(GX.cam.z,1.15)};const t0=performance.now();const anim=()=>{const k=Math.min(1,(performance.now()-t0)/600);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.cam.x=from.x+(to.x-from.x)*e;GX.cam.y=from.y+(to.y-from.y)*e;GX.cam.z=from.z+(to.z-from.z)*e;if(k<1)requestAnimationFrame(anim);};anim();}
 function gxPanel(){
   const P=$('#gxpanel');if(!P)return;const e=GX.sel&&ent(GX.sel);
-  if(!e){const n=GX.nodes.length;P.innerHTML=`<h3>La galaxie du codex</h3><p class="small muted">${n} élément${n>1?'s':''} reliés, ${GX.edges.length} lien${GX.edges.length>1?'s':''}. Chaque étoile est une fiche ; sa taille montre son nombre de liens.</p><ul class="small gxhelp"><li><b>Clic</b> sur une étoile : ses détails ici.</li><li><b>Double-clic</b> : ouvrir sa fiche.</li><li><b>Glisser</b> le fond pour te déplacer, la molette ou deux doigts pour zoomer, glisser une étoile pour la placer.</li></ul>${GX.nodes.length?`<p class="small muted" style="margin-bottom:.3rem">Les plus reliés :</p><div class="lchips">${[...GX.nodes].sort((a,b)=>b.deg-a.deg).slice(0,10).map(n=>`<span class="lchip" style="--gc:var(--gc-${n.e.t})"><button data-act="gx-sel" data-ref="${esc(n.ref)}">${eIcon(n.e)} ${esc(n.e.name)}<small>${n.deg}</small></button></span>`).join('')}</div>`:''}`;return;}
+  if(!e){const n=GX.nodes.length;P.innerHTML=`<h3>La galaxie du codex</h3><p class="small muted">${n} élément${n>1?'s':''} reliés, ${GX.edges.length} lien${GX.edges.length>1?'s':''}. Chaque étoile est une fiche ; sa taille montre son nombre de liens.</p><ul class="small gxhelp"><li><b>Clic</b> sur une étoile : ses détails ici.</li><li><b>Double-clic</b> : ouvrir sa fiche.</li>${GX.globe?'<li><b>Maintenir le clic et glisser</b> fait tourner le globe, qui continue sur sa lancée. Molette ou deux doigts pour zoomer.</li><li>Sélectionner une étoile <b>fige la rotation</b> et la ramène face à toi.</li>':'<li><b>Glisser</b> le fond pour te déplacer, la molette ou deux doigts pour zoomer, glisser une étoile pour la placer.</li>'}</ul>${GX.nodes.length?`<p class="small muted" style="margin-bottom:.3rem">Les plus reliés :</p><div class="lchips">${[...GX.nodes].sort((a,b)=>b.deg-a.deg).slice(0,10).map(n=>`<span class="lchip" style="--gc:var(--gc-${n.e.t})"><button data-act="gx-sel" data-ref="${esc(n.ref)}">${eIcon(n.e)} ${esc(n.e.name)}<small>${n.deg}</small></button></span>`).join('')}</div>`:''}`;return;}
   const big=eImgSrc(e);
   P.innerHTML=`<div class="gxhead">${big?`<img class="gxhero" src="${esc(big)}" alt="">`:`<span class="gxemo">${e.icon}</span>`}<div><h3 style="margin:0">${esc(e.name)}</h3><p class="small muted" style="margin:0">${esc(ETYPE[e.t][1])}${e.sub?', '+esc(e.sub):''}</p></div></div>
   <div class="row" style="margin:.6rem 0"><button class="primary small" data-act="ref-open" data-ref="${esc(e.ref)}">↗ Ouvrir la fiche</button><button class="small" data-act="pin" data-ref="${esc(e.ref)}">📌 Épingler</button><button class="small" data-act="gx-link" data-ref="${esc(e.ref)}">+ Relier à…</button></div>
@@ -4614,8 +4621,8 @@ function renderReseau(){
   GX.col={};GX.lastI=performance.now();
   const v=$('#v-reseau');
   const bar=`<div class="gxbar"><div class="seg" role="group" aria-label="Vue">${[['galaxie','✨ Galaxie'],['liste','☰ Liste'],['arbre','🌿 Arbre']].map(([k,n])=>`<button data-act="gx-mode" data-k="${k}" aria-pressed="${GX.mode===k}">${n}</button>`).join('')}</div>
-    ${GX.focus&&GX.mode==='galaxie'&&GX.sel?`<button class="small" data-act="gx-unfocus" title="Revoir toute la galaxie">✕ Entourage de ${esc((ent(GX.sel)||{name:''}).name)}</button>`:''}<div class="gxsearch"><input id="gx-q" type="search" placeholder="Trouver une étoile…" autocomplete="off" aria-label="Trouver un élément dans le réseau"><div id="gx-sug" class="gxsug" hidden></div></div>
-    <span class="gxchips">${ETORDER.map(t=>`<button class="chip gxchip" data-act="gx-type" data-t="${t}" aria-pressed="${GX.types.has(t)}" style="--gc:var(--gc-${t})">${ETYPE[t][0]} ${ETYPE[t][2]}</button>`).join('')}</span></div>`;
+    ${GX.mode==='galaxie'?`<button class="chip gxchip" data-act="gx-globe" aria-pressed="${GX.globe}" style="--gc:var(--gc-map)" title="Passer du globe à la vue à plat">${GX.globe?'🌐 Globe':'🗺️ À plat'}</button>`:''}${GX.focus&&GX.mode==='galaxie'&&GX.sel?`<button class="small" data-act="gx-unfocus" title="Revoir toute la galaxie">✕ Entourage de ${esc((ent(GX.sel)||{name:''}).name)}</button>`:''}<div class="gxsearch"><input id="gx-q" type="search" placeholder="Trouver une étoile…" autocomplete="off" aria-label="Trouver un élément dans le réseau"><div id="gx-sug" class="gxsug" hidden></div></div>
+    <button class="chip gxchip" data-act="gx-mentions" aria-pressed="${GX.mentions!==false}" style="--gc:var(--gc-note)" title="Afficher les liens créés par les noms cités dans les textes">💬 Mentions</button><span class="gxchips">${ETORDER.map(t=>`<button class="chip gxchip" data-act="gx-type" data-t="${t}" aria-pressed="${GX.types.has(t)}" style="--gc:var(--gc-${t})">${ETYPE[t][0]} ${ETYPE[t][2]}</button>`).join('')}</span></div>`;
   if(GX.mode==='arbre'){
     GR.center=GX.sel||GR.center;renderReseauTree();v.insertAdjacentHTML('afterbegin',bar);return;
   }
@@ -5150,6 +5157,267 @@ document.addEventListener('pointerdown',e=>{
 
 ACT['card-side']=t=>{const c=S.board.cards.find(x=>x.id===t.dataset.cid);if(!c)return;c.side=!c.side?'ally':c.side==='ally'?'enemy':'';Store.touch('board');refreshCards([c.id]);toast(c.side==='ally'?'🙂 Allié.':c.side==='enemy'?'😠 Ennemi.':'😐 Neutre.');};
 ACT['m-side']=t=>{for(const c of selCards())if(c.ref&&c.ref.startsWith('npc:'))c.side=t.dataset.v||'';Store.touch('board');refreshCards([...BMULTI]);renderCtx();};
+
+/* =========================================================
+   VERSION 25 : MENTIONS AUTOMATIQUES DES PNJ
+   ========================================================= */
+S.mention={block:[],allow:[],ignore:[],ok:[]};
+Store.keys.push('mention');
+{const p=Store.pack.bind(Store),u=Store.unpack.bind(Store);
+ Store.pack=k=>k==='mention'?{...S.mention}:p(k);
+ Store.unpack=(k,d)=>{if(k==='mention'){if(d)S.mention={block:[],allow:[],ignore:[],ok:[],...d};MVER++;return;}u(k,d);};}
+let MVER=1;const mkey=()=>MVER+':'+S.npcs.length;
+const GENERIC=new Set(('guard guards goblin goblins bandit bandits wolf wolves spider spiders zombie zombies skeleton skeletons gnoll gnolls ogre ogres harpy harpies cultist cultists soldier soldiers mercenary mercenaries refugee refugees tiefling tieflings drow duergar gnome gnomes dwarf dwarves elf elves human humans imp imps ghoul ghouls ghost ghosts wraith wraiths shadow shadows mephit mephits rat rats boar boars bear bears owlbear bugbear hobgoblin kobold minotaur myconid worg wyvern commoner citizen merchant child priest patron prisoner worker thug fist dog cat crab raven toad frog deer squirrel scratch'+
+  ' bat bats mummy vampire vampires devil devils demon demons angel cambion cambions githyanki illithid mind flayer intellect devourer cloaker doppelganger hag hags dryad nymph sahuagin servant noble guest clerk scribe sailor pirate monk knight captain sergeant lieutenant commander shopkeeper vendor bartender bard cook farmer hunter peasant beggar trader traveler traveller watcher warden jailer acolyte cleric paladin wizard sorcerer warlock ranger rogue fighter barbarian druid mage tadpole absolute shadar kai dragon wyrm drake owl spawn true soul').split(' '));
+let NIDX=null;
+function npcScore(n,A){const m=A.get('npc:'+n.id);let s=m?m.size*10:0;if(!n.wiki)s+=6;s+={compagnon:5,pnj:3,boss:2,marchand:2}[n.kind]||0;if(n.img)s+=1;if(n.actions)s+=1;return s;}
+function nameBlocked(nm,count){
+  const L=nm.toLowerCase();
+  if(S.mention.allow.some(x=>x.toLowerCase()===L))return false;
+  if(S.mention.block.some(x=>x.toLowerCase()===L))return true;
+  if(GENERIC.has(L))return true;
+  if(nm.length<4)return true;
+  if(!/^[A-ZÀ-ÖØ-Þ'‘’"]/.test(nm))return true;
+  if(count>=5&&!/\s/.test(nm))return true;
+  return false;
+}
+const escRe=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function buildNameIndex(){
+  if(NIDX&&NIDX.v===mkey())return NIDX;
+  const A=EC||adjacencyBase();const byName=new Map();
+  for(const n of S.npcs){const nm=decEnt(String(n.name||'')).replace(/^['‘’"]|['‘’"]$/g,'').trim();if(nm.length<3)continue;if(!byName.has(nm))byName.set(nm,[]);byName.get(nm).push(n);}
+  const sure=new Map(),first=new Map();
+  for(const [nm,list] of byName){if(nameBlocked(nm,list.length))continue;const best=[...list].sort((a,b)=>npcScore(b,A)-npcScore(a,A))[0];sure.set(nm,best.id);}
+  for(const [nm,id] of sure){const parts=nm.split(/\s+/);if(parts.length<2)continue;const f=parts[0];if(f.length<4||sure.has(f)||GENERIC.has(f.toLowerCase())||nameBlocked(f,1))continue;if(!first.has(f))first.set(f,new Set());first.get(f).add(id);}
+  const keys=[...sure.keys(),...first.keys()].sort((a,b)=>b.length-a.length);
+  let re=null;try{re=keys.length?new RegExp('(?<![\\p{L}\\p{N}_])(?:'+keys.map(escRe).join('|')+')(?![\\p{L}\\p{N}_])','gu'):null;}catch(e){re=null;}
+  NIDX={v:mkey(),sure,first,re};return NIDX;
+}
+const MC=new Map();
+function quickHash(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return h+':'+s.length;}
+const okey=x=>(x.updated||0)+':'+String(x.title||'').length+':'+String(x.text||'').length+':'+String(x.summary||'').length+':'+String(x.author||'').length;
+function mentionSources(){
+  const L=[];
+  S.notes.forEach(x=>L.push(['note:'+x.id,okey(x),()=>(x.title||'')+'\n'+stripTok(x.text)]));
+  S.quests.forEach(x=>L.push(['quest:'+x.id,okey(x),()=>(x.title||'')+'\n'+stripTok(x.text)]));
+  S.lore.forEach(x=>L.push(['lore:'+x.id,okey(x),()=>(x.title||'')+'\n'+(x.author||'')+'\n'+(x.summary||'')+'\n'+stripTok(x.text)]));
+  return L;
+}
+function scanText(txt){
+  const I=buildNameIndex();const sure=new Set(),prob=new Map();if(!I.re||!txt)return {sure,prob};
+  I.re.lastIndex=0;let m;
+  while((m=I.re.exec(txt))){const w=m[0];if(I.sure.has(w))sure.add(I.sure.get(w));else if(I.first.has(w))prob.set(w,[...I.first.get(w)]);}
+  for(const [w,c] of [...prob])if(c.some(id=>sure.has(id)))prob.delete(w);
+  return {sure,prob};
+}
+function mentionsFor(src,key,txtFn){
+  const h=key+'|'+mkey();const c=MC.get(src);if(c&&c.h===h)return c;
+  const r=scanText(typeof txtFn==='function'?txtFn():txtFn);const o={h,sure:[...r.sure],prob:[...r.prob].map(([name,cands])=>({name,cands}))};MC.set(src,o);return o;
+}
+const isIgnored=(src,id)=>S.mention.ignore.includes(src+'|npc:'+id);
+const isOk=(src,id)=>S.mention.ok.includes(src+'|npc:'+id);
+const nameRejected=(src,name)=>S.mention.ignore.includes(src+'|?'+name);
+function pendingProb(src,o){return o.prob.filter(p=>!nameRejected(src,p.name)&&!p.cands.some(id=>isOk(src,id)||isIgnored(src,id)));}
+
+/* ---------- intégration au graphe des liens ---------- */
+const adjacencyBase=adjacency;let ECM=null,ECMbase=null,ECMv=0,MENTION_OFF=false;
+adjacency=function(){
+  const A=adjacencyBase();if(MENTION_OFF)return A;
+  if(ECM&&ECMbase===A&&ECMv===mkey())return ECM;
+  const M=new Map([...A].map(([k,m])=>[k,new Map([...m].map(([kk,v])=>[kk,v.slice()]))]));
+  const add=(a,b)=>{if(!ent(b))return;for(const [x,y] of [[a,b],[b,a]]){if(!M.has(x))M.set(x,new Map());const mm=M.get(x);if(!mm.has(y))mm.set(y,[]);mm.get(y).push({kind:'mention'});}};
+  for(const [src,key,txt] of mentionSources()){const o=mentionsFor(src,key,txt);
+    for(const id of o.sure)if(!isIgnored(src,id))add(src,'npc:'+id);
+    for(const p of o.prob)for(const id of p.cands)if(isOk(src,id))add(src,'npc:'+id);}
+  ECM=M;ECMbase=A;ECMv=mkey();return M;
+};
+{const rl=removeLink;removeLink=function(a,b){
+  const pairs=[[a,b],[b,a]].filter(([x,y])=>/^(note|quest|lore):/.test(x)&&y.startsWith('npc:'));
+  for(const [x,y] of pairs){const k=x+'|'+y;if(!S.mention.ignore.includes(k))S.mention.ignore.push(k);S.mention.ok=S.mention.ok.filter(z=>z!==k);}
+  if(pairs.length){MVER++;Store.touch('mention');}
+  rl(a,b);
+};}
+{const t4=Store.touch;Store.touch=function(k){if(k==='npcs'||k==='mention'){MVER++;NIDX=null;}t4.call(this,k);
+  if(['notes','lore','quests','npcs','mention'].includes(k)){clearTimeout(MNT);MNT=setTimeout(refreshMentionUI,700);}};}
+let MNT=null;
+{const gb=gxBuild;gxBuild=function(){MENTION_OFF=GX.mentions===false;try{gb();}finally{MENTION_OFF=false;}};}
+
+/* ---------- encadré de validation dans les fiches ---------- */
+function currentSrc(){if(cur==='carnet'&&NV.sel)return 'note:'+NV.sel;if(cur==='biblio'&&BV.sel)return 'lore:'+BV.sel;if(cur==='quetes'&&QV.sel)return 'quest:'+QV.sel;return null;}
+function srcEntry(src){return mentionSources().find(x=>x[0]===src)||[src,'0',()=>''];}
+function mentionBoxHTML(src){
+  const se=srcEntry(src);const o=mentionsFor(src,se[1],se[2]);const pend=pendingProb(src,o);const auto=o.sure.filter(id=>!isIgnored(src,id)).map(id=>ent('npc:'+id)).filter(Boolean);
+  if(!pend.length&&!auto.length)return `<div class="mbox" data-src="${esc(src)}" hidden></div>`;
+  return `<div class="mbox" data-src="${esc(src)}">
+    ${pend.length?`<div class="mrow"><b>💬 ${pend.length} personne${pend.length>1?'s':''} repérée${pend.length>1?'s':''} à confirmer :</b></div>${pend.map(p=>{const cs=p.cands.map(id=>ent('npc:'+id)).filter(Boolean);if(!cs.length)return '';
+      return `<div class="mrow mprob"><span class="mname">« ${esc(p.name)} »</span>${cs.length>1?`<select data-mn-sel="${esc(p.name)}" aria-label="Quel PNJ ?">${cs.map(e=>opt(e.id,e.name+(e.sub?' ('+e.sub+')':''),cs[0].id)).join('')}</select>`:`<span class="lchip" style="--gc:var(--gc-npc)"><button data-act="ref-open" data-ref="${esc(cs[0].ref)}">${eIcon(cs[0])} ${esc(cs[0].name)}</button></span>`}
+        <button class="small primary" data-act="mn-ok" data-src="${esc(src)}" data-name="${esc(p.name)}" data-id="${cs[0].id}" title="C'est bien cette personne">✓</button><button class="small" data-act="mn-no" data-src="${esc(src)}" data-name="${esc(p.name)}" title="Ce n'est pas un PNJ du codex">✕</button></div>`;}).join('')}`:''}
+    ${auto.length?`<div class="mrow small muted">✓ Relié${auto.length>1?'s':''} automatiquement : ${auto.map(e=>esc(e.name)).join(', ')}</div>`:''}
+  </div>`;
+}
+function injectMentionBox(){const src=currentSrc();if(!src)return;const ed={note:'#noteed',lore:'#loreed',quest:'#quested'}[src.split(':')[0]];const host=$(ed);if(!host)return;const old=$('.mbox',host);const html=mentionBoxHTML(src);
+  if(old){old.outerHTML=html;}else{const links=$('.links',host);if(links)links.insertAdjacentHTML('beforebegin',html);}}
+function refreshMentionUI(){if(!currentSrc())return;injectMentionBox();refreshLinks();highlightMentions();}
+{const a=renderNoteEditor;renderNoteEditor=function(){a();injectMentionBox();highlightMentions();};}
+{const a=renderLoreEditor;renderLoreEditor=function(){a();injectMentionBox();highlightMentions();};}
+{const a=renderQuestEditor;renderQuestEditor=function(){a();injectMentionBox();highlightMentions();};}
+ACT['mn-ok']=t=>{const src=t.dataset.src;const sel=$(`.mbox select[data-mn-sel="${CSS.escape(t.dataset.name)}"]`);const id=sel?sel.value:t.dataset.id;const k=src+'|npc:'+id;if(!S.mention.ok.includes(k))S.mention.ok.push(k);S.mention.ignore=S.mention.ignore.filter(z=>z!==k);Store.touch('mention');injectMentionBox();refreshLinks();toast('Lien confirmé.');};
+ACT['mn-no']=t=>{const k=t.dataset.src+'|?'+t.dataset.name;if(!S.mention.ignore.includes(k))S.mention.ignore.push(k);Store.touch('mention');injectMentionBox();};
+
+/* ---------- surlignage des noms dans les textes ---------- */
+function highlightMentions(){
+  if(!(window.CSS&&CSS.highlights&&window.Highlight))return;
+  const I=buildNameIndex();const hs=new Highlight(),hp=new Highlight();
+  if(I.re)$$('.rich[data-rich]').forEach(ed=>{
+    const src=ed.dataset.rich.split(':').slice(0,2).join(':');
+    const tw=document.createTreeWalker(ed,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentElement&&n.parentElement.closest('.ref')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+    let n;while((n=tw.nextNode())){I.re.lastIndex=0;let m;while((m=I.re.exec(n.data))){const w=m[0];let kind=null;
+      if(I.sure.has(w)){if(!isIgnored(src,I.sure.get(w)))kind='s';}else if(I.first.has(w)&&!nameRejected(src,w))kind=[...I.first.get(w)].some(id=>isOk(src,id))?'s':'p';
+      if(!kind)continue;const r=new Range();r.setStart(n,m.index);r.setEnd(n,m.index+w.length);(kind==='s'?hs:hp).add(r);}}
+  });
+  CSS.highlights.set('mention-sure',hs);CSS.highlights.set('mention-prob',hp);
+}
+let HLT=null;document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('.rich[data-rich]')){clearTimeout(HLT);HLT=setTimeout(highlightMentions,500);}});
+document.addEventListener('click',e=>{
+  const ed=e.target.closest&&e.target.closest('.rich[data-rich]');if(!ed||e.target.closest('.ref'))return;
+  const sel=window.getSelection();if(sel&&!sel.isCollapsed)return;
+  let node=null,off=0;
+  if(document.caretPositionFromPoint){const p=document.caretPositionFromPoint(e.clientX,e.clientY);if(p){node=p.offsetNode;off=p.offset;}}
+  else if(document.caretRangeFromPoint){const r=document.caretRangeFromPoint(e.clientX,e.clientY);if(r){node=r.startContainer;off=r.startOffset;}}
+  if(!node||node.nodeType!==3)return;const I=buildNameIndex();if(!I.re)return;
+  I.re.lastIndex=0;let m,hit=null;while((m=I.re.exec(node.data))){if(off>=m.index&&off<=m.index+m[0].length){hit=m[0];break;}}
+  if(!hit)return;const src=ed.dataset.rich.split(':').slice(0,2).join(':');
+  const ids=I.sure.has(hit)?[I.sure.get(hit)]:[...(I.first.get(hit)||[])];const es=ids.map(id=>ent('npc:'+id)).filter(Boolean);if(!es.length)return;
+  hidePop();const p=document.createElement('div');p.id='refpop';p.className='refpop';
+  p.innerHTML=es.map(en=>`<button class="small primary" data-act="ref-open" data-ref="${esc(en.ref)}">${eIcon(en)} Ouvrir « ${esc(en.name)} »</button>`).join('')+(I.sure.has(hit)?`<button class="small" data-act="mn-unlink" data-src="${esc(src)}" data-id="${ids[0]}">Ne pas relier ici</button>`:'');
+  document.body.appendChild(p);p.style.left=Math.max(8,Math.min(window.innerWidth-p.offsetWidth-8,e.clientX-20))+'px';p.style.top=(e.clientY+16)+'px';
+});
+ACT['mn-unlink']=t=>{hidePop();const k=t.dataset.src+'|npc:'+t.dataset.id;if(!S.mention.ignore.includes(k))S.mention.ignore.push(k);Store.touch('mention');refreshMentionUI();toast('Ce nom ne sera plus relié dans ce texte.');};
+
+/* ---------- analyse complète ---------- */
+function analyzeAll(){
+  const t0=performance.now();let sureN=0,srcN=0;const names=new Map(),autoNames=new Map();
+  for(const [src,key,txt] of mentionSources()){const o=mentionsFor(src,key,txt);const s=o.sure.filter(id=>!isIgnored(src,id));if(s.length)srcN++;sureN+=s.length;
+    for(const id of s){const e=ent('npc:'+id);if(e)autoNames.set(e.name,(autoNames.get(e.name)||0)+1);}
+    for(const p of pendingProb(src,o)){if(!names.has(p.name))names.set(p.name,{cands:p.cands,srcs:[]});names.get(p.name).srcs.push(src);}}
+  EC=null;const ms=Math.round(performance.now()-t0);
+  const probL=[...names].sort((a,b)=>b[1].srcs.length-a[1].srcs.length);
+  const topAuto=[...autoNames].sort((a,b)=>b[1]-a[1]).slice(0,24);
+  openDlg('Mentions de PNJ dans tes textes',`
+    <p>${sureN} lien${sureN>1?'s':''} automatique${sureN>1?'s':''} dans ${srcN} texte${srcN>1?'s':''} (notes, quêtes, bibliothèque). <span class="small muted">Analyse en ${ms} ms.</span></p>
+    ${probL.length?`<h3>À confirmer (${probL.length} nom${probL.length>1?'s':''})</h3><div class="mlist">${probL.map(([name,o])=>{const cs=o.cands.map(id=>ent('npc:'+id)).filter(Boolean);if(!cs.length)return '';return `<div class="mrow mprob"><span class="mname">« ${esc(name)} »</span><span class="small muted">${o.srcs.length} texte${o.srcs.length>1?'s':''}</span>
+      <select data-mna="${esc(name)}">${cs.map(e=>opt(e.id,e.name+(e.sub?' ('+e.sub+')':''),cs[0].id)).join('')}</select>
+      <button class="small primary" data-act="mna-ok" data-name="${esc(name)}">✓ Valider partout</button><button class="small" data-act="mna-no" data-name="${esc(name)}">✕ Ignorer partout</button></div>`;}).join('')}</div>`:'<p class="small muted">Rien à confirmer pour l’instant.</p>'}
+    ${topAuto.length?`<h3>Les plus cités</h3><p class="small muted">Si un nom est relié à tort (un mot courant, par exemple), retire-le d’un clic.</p><div class="lchips">${topAuto.map(([n,c])=>`<span class="lchip" style="--gc:var(--gc-npc)"><button data-act="mn-block" data-name="${esc(n)}" title="Ne plus jamais relier ce nom">${esc(n)} <small>${c}</small> 🚫</button></span>`).join('')}</div>`:''}
+    <div class="row" style="margin-top:1rem"><button data-act="mn-settings">⚙ Noms bloqués ou autorisés</button></div>`,{wide:true});
+}
+ACT['mn-analyze']=()=>analyzeAll();
+ACT['mna-ok']=t=>{const name=t.dataset.name;const id=$(`select[data-mna="${CSS.escape(name)}"]`).value;let n=0;
+  for(const [src,key,txt] of mentionSources()){const o=mentionsFor(src,key,txt);if(pendingProb(src,o).some(p=>p.name===name)){const k=src+'|npc:'+id;if(!S.mention.ok.includes(k)){S.mention.ok.push(k);n++;}}}
+  Store.touch('mention');toast(`« ${name} » relié dans ${n} texte${n>1?'s':''}.`);analyzeAll();};
+ACT['mna-no']=t=>{const name=t.dataset.name;for(const [src,key,txt] of mentionSources()){const o=mentionsFor(src,key,txt);if(pendingProb(src,o).some(p=>p.name===name)){const k=src+'|?'+name;if(!S.mention.ignore.includes(k))S.mention.ignore.push(k);}}Store.touch('mention');analyzeAll();};
+ACT['mn-block']=t=>{const n=t.dataset.name;if(!confirm(`Ne plus jamais relier automatiquement « ${n} » ?`))return;if(!S.mention.block.includes(n))S.mention.block.push(n);S.mention.allow=S.mention.allow.filter(x=>x!==n);Store.touch('mention');analyzeAll();};
+ACT['mn-settings']=()=>{openDlg('Réglages des mentions',`<p class="small muted">Un nom par ligne. Les noms bloqués ne sont jamais reliés automatiquement. Les noms autorisés passent même s’ils ressemblent à un mot courant (par exemple « Mol » ou « Ox »).</p>
+  <div class="formgrid"><label>Noms bloqués<textarea id="mn-block">${esc(S.mention.block.join('\n'))}</textarea></label><label>Noms toujours autorisés<textarea id="mn-allow">${esc(S.mention.allow.join('\n'))}</textarea></label></div>
+  <div class="row"><button class="primary" data-act="mn-save">Enregistrer</button><button data-act="mn-analyze">← Retour à l’analyse</button></div>`,{wide:true});};
+ACT['mn-save']=()=>{const L=id=>$('#'+id).value.split('\n').map(s=>s.trim()).filter(Boolean);S.mention.block=L('mn-block');S.mention.allow=L('mn-allow');Store.touch('mention');toast('Réglages enregistrés.');analyzeAll();};
+/* boutons d'analyse dans la bibliothèque, le carnet et les quêtes */
+function addAnalyzeBtn(sel){const row=$(sel);if(row&&!$('[data-act="mn-analyze"]',row))row.insertAdjacentHTML('beforeend','<button data-act="mn-analyze" title="Repérer les PNJ cités dans tous tes textes">🔎 Mentions</button>');}
+{const a=renderBiblio;renderBiblio=function(){a();addAnalyzeBtn('#v-biblio .split .panel .row');};}
+{const a=renderCarnet;renderCarnet=function(){a();addAnalyzeBtn('#v-carnet .split .panel .row');};}
+{const a=renderQuetes;renderQuetes=function(){a();addAnalyzeBtn('#v-quetes .split .panel .row');};}
+/* galaxie : afficher ou masquer les mentions */
+GX.mentions=true;
+ACT['gx-mentions']=()=>{GX.mentions=!GX.mentions;renderReseau();};
+
+/* =========================================================
+   VERSION 26 : LE GLOBE DES CONNEXIONS
+   ========================================================= */
+GX.globe=true;GX.rot=[[1,0,0],[0,1,0],[0,0,1]];GX.vel={x:0,y:0};GX.rext=400;GX.dragging=false;GX.turn=null;
+const mmul=(A,B)=>A.map(r=>[0,1,2].map(j=>r[0]*B[0][j]+r[1]*B[1][j]+r[2]*B[2][j]));
+const mvec=(M,v)=>[M[0][0]*v[0]+M[0][1]*v[1]+M[0][2]*v[2],M[1][0]*v[0]+M[1][1]*v[1]+M[1][2]*v[2],M[2][0]*v[0]+M[2][1]*v[1]+M[2][2]*v[2]];
+function raxis(ax,a){const [x,y,z]=ax;const c=Math.cos(a),s=Math.sin(a),t=1-c;return [[t*x*x+c,t*x*y-s*z,t*x*z+s*y],[t*x*y+s*z,t*y*y+c,t*y*z-s*x],[t*x*z-s*y,t*y*z+s*x,t*z*z+c]];}
+function orthoFix(M){const n=v=>{const l=Math.hypot(...v)||1;return v.map(x=>x/l);};const a=n(M[0]);let b=M[1];const d=a[0]*b[0]+a[1]*b[1]+a[2]*b[2];b=n(b.map((x,i)=>x-d*a[i]));const c=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];return [a,b,c];}
+function gRotate(dx,dy){if(!dx&&!dy)return;const a=Math.hypot(dx,dy);GX.rot=orthoFix(mmul(raxis([dy/a,-dx/a,0].map(v=>-v),a),GX.rot));}
+function sphereOf(n){const r=Math.min(1,Math.hypot(n.x,n.y)/GX.rext);const th=Math.atan2(n.y,n.x);const ph=r*Math.PI*0.97;return [Math.sin(ph)*Math.cos(th),Math.sin(ph)*Math.sin(th),Math.cos(ph)];}
+function gProject(W,H){
+  let m=1;for(const n of GX.nodes)m=Math.max(m,Math.hypot(n.x,n.y));GX.rext+=(m*1.04-GX.rext)*0.08;
+  const Rs=Math.min(W,H)*0.42*GX.cam.z,cx=W/2,cy=H/2,f=3.2;
+  for(const n of GX.nodes){const p=mvec(GX.rot,sphereOf(n));const s=f/(f-p[2]);n.p=p;n.sx=cx+p[0]*Rs*s;n.sy=cy+p[1]*Rs*s;n.ps=s;n.depth=p[2];}
+  return {Rs,cx,cy,f};
+}
+function gTick(){
+  if(GX.turn){const T=GX.turn;const k=Math.min(1,(performance.now()-T.t0)/650);const e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;GX.rot=orthoFix(mmul(raxis(T.axis,T.ang*e),T.from));if(k>=1)GX.turn=null;GX.lastI=performance.now();return;}
+  if(GX.dragging)return;
+  if(Math.abs(GX.vel.x)+Math.abs(GX.vel.y)>0.00005){gRotate(GX.vel.x,GX.vel.y);GX.vel.x*=0.94;GX.vel.y*=0.94;GX.lastI=performance.now();return;}
+  if(!GX.sel&&!GX.hover){gRotate(0.0016,0);GX.lastI=performance.now();}
+}
+function gxDrawGlobe(){
+  const cv=$('#gxcanvas');if(!cv)return;const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;const dpr=window.devicePixelRatio||1;const W=cv.clientWidth,H=cv.clientHeight;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  ctx.setTransform(dpr,0,0,dpr,0,0);gTick();
+  const bg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,Math.max(W,H)*.75);bg.addColorStop(0,'#160f28');bg.addColorStop(1,'#05040a');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  const t=performance.now()/1000;for(const [x,y,r,p] of gxStars(W,H)){ctx.globalAlpha=.2+.3*Math.abs(Math.sin(t*.5+p*9));ctx.fillStyle='#fff';ctx.fillRect(x,y,r,r);}ctx.globalAlpha=1;
+  const {Rs,cx,cy,f}=gProject(W,H);
+  const glow=ctx.createRadialGradient(cx-Rs*.3,cy-Rs*.35,Rs*.1,cx,cy,Rs*1.08);glow.addColorStop(0,'rgba(140,110,255,.16)');glow.addColorStop(.75,'rgba(60,40,120,.10)');glow.addColorStop(.93,'rgba(150,120,255,.22)');glow.addColorStop(1,'rgba(150,120,255,0)');
+  ctx.fillStyle=glow;ctx.beginPath();ctx.arc(cx,cy,Rs*1.08,0,Math.PI*2);ctx.fill();
+  ctx.lineWidth=1;ctx.strokeStyle='rgba(180,160,255,.10)';
+  const line=pts=>{let first=true;ctx.beginPath();for(const v of pts){const p=mvec(GX.rot,v);if(p[2]<-0.05){first=true;continue;}const s=f/(f-p[2]);const x=cx+p[0]*Rs*s,y=cy+p[1]*Rs*s;if(first){ctx.moveTo(x,y);first=false;}else ctx.lineTo(x,y);}ctx.stroke();};
+  for(let la=-60;la<=60;la+=30){const pts=[];const L=la*Math.PI/180;for(let lo=0;lo<=360;lo+=6){const g=lo*Math.PI/180;pts.push([Math.cos(L)*Math.cos(g),Math.sin(L),Math.cos(L)*Math.sin(g)]);}line(pts);}
+  for(let lo=0;lo<180;lo+=30){const pts=[];const g=lo*Math.PI/180;for(let la=0;la<=360;la+=6){const L=la*Math.PI/180;pts.push([Math.cos(L)*Math.cos(g),Math.sin(L),Math.cos(L)*Math.sin(g)]);}line(pts);}
+  const act=GX.hover||GX.idx.get(GX.sel);const near=new Set();if(act){near.add(act);for(const [a,b] of GX.edges){if(a===act)near.add(b);if(b===act)near.add(a);}}
+  const arc=(a,b)=>{const m=[a.p[0]+b.p[0],a.p[1]+b.p[1],a.p[2]+b.p[2]];const l=Math.hypot(...m)||1;const k=1.12/l;const mm=[m[0]*k,m[1]*k,m[2]*k];const s=f/(f-mm[2]);return [cx+mm[0]*Rs*s,cy+mm[1]*Rs*s,mm[2]];};
+  ctx.lineCap='round';
+  const E=[...GX.edges].sort((x,y)=>(x[0].depth+x[1].depth)-(y[0].depth+y[1].depth));
+  for(const [a,b] of E){const hot=act&&(a===act||b===act);const dz=(a.depth+b.depth)/2;const back=dz<0;
+    const al=hot?.95:act?.12:(back?.08+.12*(dz+1):.22+.2*dz);ctx.globalAlpha=Math.max(.04,al);
+    ctx.strokeStyle=hot?typeColor((a===act?b:a).e.t):'rgb(190,175,255)';ctx.lineWidth=hot?2.2:1;
+    const [mx,my]=arc(a,b);ctx.beginPath();ctx.moveTo(a.sx,a.sy);ctx.quadraticCurveTo(2*mx-(a.sx+b.sx)/2,2*my-(a.sy+b.sy)/2,b.sx,b.sy);ctx.stroke();}
+  ctx.globalAlpha=1;
+  const order=[...GX.nodes].sort((a,b)=>a.depth-b.depth);
+  for(const n of order){const r=Math.max(3,n.r*Math.sqrt(GX.cam.z)*n.ps*0.95);const col=typeColor(n.e.t);const back=n.depth<0;const dim=(act&&!near.has(n))||back;
+    ctx.globalAlpha=act&&near.has(n)?1:back?Math.max(.12,.45+.45*n.depth):dim?.3:1;
+    ctx.shadowColor=col;ctx.shadowBlur=back?0:(n===act?26:near.has(n)?14:6);
+    ctx.beginPath();ctx.arc(n.sx,n.sy,r,0,Math.PI*2);ctx.fillStyle='#18122a';ctx.fill();ctx.shadowBlur=0;
+    const im=r>=7&&n.depth>-0.3?gxImg(n.e):null;
+    if(im){ctx.save();ctx.beginPath();ctx.arc(n.sx,n.sy,r-1.5,0,Math.PI*2);ctx.clip();const sc=Math.max((r*2)/im.naturalWidth,(r*2)/im.naturalHeight);ctx.drawImage(im,n.sx-im.naturalWidth*sc/2,n.sy-im.naturalHeight*sc/2,im.naturalWidth*sc,im.naturalHeight*sc);ctx.restore();}
+    else if(r>=6){ctx.font=`${Math.round(r*1.05)}px "Segoe UI Emoji","Apple Color Emoji",sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(n.e.icon,n.sx,n.sy+1);}
+    ctx.lineWidth=n.ref===GX.sel?3.2:1.8;ctx.strokeStyle=col;ctx.beginPath();ctx.arc(n.sx,n.sy,r,0,Math.PI*2);ctx.stroke();
+    if(n.ref===GX.sel){ctx.lineWidth=1.5;ctx.globalAlpha=.6+.4*Math.sin(t*3);ctx.beginPath();ctx.arc(n.sx,n.sy,r+7,0,Math.PI*2);ctx.stroke();}
+    const showLabel=!back&&(n===act||(act&&near.has(n))||(n.depth>.55&&(n.deg>=5||GX.cam.z>1.3)));
+    if(showLabel){ctx.globalAlpha=1;ctx.font=`${n===act?700:500} 12.5px "Alegreya Sans",sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';const label=n.e.name.length>28?n.e.name.slice(0,27)+'…':n.e.name;ctx.lineWidth=4;ctx.strokeStyle='rgba(8,6,16,.9)';ctx.strokeText(label,n.sx,n.sy+r+5);ctx.fillStyle=n===act?'#fff':'#ddd5f0';ctx.fillText(label,n.sx,n.sy+r+5);}
+  }
+  ctx.globalAlpha=1;ctx.shadowBlur=0;
+}
+function gHit(px,py){const cv=$('#gxcanvas');const r=cv.getBoundingClientRect();const x=px-r.left,y=py-r.top;let best=null,bd=1e9;
+  for(const n of GX.nodes){if(n.sx==null)continue;const rr=Math.max(5,n.r*Math.sqrt(GX.cam.z)*(n.ps||1))+4;const d=Math.hypot(n.sx-x,n.sy-y);const pen=n.depth<0?40:0;if(d<rr&&d+pen<bd){bd=d+pen;best=n;}}return best;}
+function gTurnTo(ref){const n=GX.idx.get(ref);if(!n)return;const v=mvec(GX.rot,sphereOf(n));const target=[0,0,1];const ax=[v[1]*target[2]-v[2]*target[1],v[2]*target[0]-v[0]*target[2],v[0]*target[1]-v[1]*target[0]];const l=Math.hypot(...ax);const ang=Math.acos(clamp(v[0]*target[0]+v[1]*target[1]+v[2]*target[2],-1,1));if(l<1e-6||ang<0.01)return;GX.vel={x:0,y:0};GX.turn={axis:ax.map(x=>x/l),ang,from:GX.rot.map(r=>r.slice()),t0:performance.now()};}
+function gxAttachGlobe(){
+  const cv=$('#gxcanvas');if(!cv)return;const pts=new Map();let drag=null,pinch=null;cv.style.cursor='grab';
+  cv.addEventListener('pointerdown',e=>{GX.lastI=performance.now();cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const [a,b]=[...pts.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1]),z:GX.cam.z};drag=null;return;}
+    drag={n:gHit(e.clientX,e.clientY),lx:e.clientX,ly:e.clientY,sx:e.clientX,sy:e.clientY,moved:false,t:performance.now()};GX.turn=null;});
+  cv.addEventListener('pointermove',e=>{GX.lastI=performance.now();if(pts.has(e.pointerId))pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pinch&&pts.size===2){const [a,b]=[...pts.values()];GX.cam.z=clamp(pinch.z*Math.hypot(a[0]-b[0],a[1]-b[1])/pinch.d,.35,3.5);return;}
+    if(!drag){const n=gHit(e.clientX,e.clientY);if(n!==GX.hover){GX.hover=n;cv.style.cursor=n?'pointer':'grab';}return;}
+    const dx=e.clientX-drag.lx,dy=e.clientY-drag.ly;if(Math.abs(e.clientX-drag.sx)+Math.abs(e.clientY-drag.sy)>4){drag.moved=true;GX.dragging=true;cv.style.cursor='grabbing';}
+    if(drag.moved){const Rs=Math.min(cv.clientWidth,cv.clientHeight)*0.42*GX.cam.z;const k=1/Rs;gRotate(dx*k,dy*k);GX.vel={x:dx*k,y:dy*k};}
+    drag.lx=e.clientX;drag.ly=e.clientY;});
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch=null;if(!drag)return;const d=drag;drag=null;GX.dragging=false;cv.style.cursor='grab';
+    if(!d.moved){if(d.n)gxSelect(d.n.ref,true);else gxSelect(null);GX.vel={x:0,y:0};}
+    else if(GX.sel)GX.vel={x:0,y:0};};
+  cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
+  cv.addEventListener('pointerleave',()=>{if(!drag)GX.hover=null;});
+  cv.addEventListener('dblclick',e=>{const n=gHit(e.clientX,e.clientY);if(n)openRef(n.ref);});
+  cv.addEventListener('wheel',e=>{GX.lastI=performance.now();e.preventDefault();GX.cam.z=clamp(GX.cam.z*(e.deltaY<0?1.12:1/1.12),.35,3.5);},{passive:false});
+}
+{const d0=gxDraw;gxDraw=function(){if(GX.globe&&GX.mode==='galaxie')return gxDrawGlobe();d0();};
+ const a0=gxAttach;gxAttach=function(){if(GX.globe)return gxAttachGlobe();a0();};
+ const f0=gxFly;gxFly=function(ref){if(GX.globe)return gTurnTo(ref);f0(ref);};
+ const fit0=gxFit;gxFit=function(){if(GX.globe){GX.cam.z=1;return;}fit0();};}
+{const l0=gxLoop;gxLoop=function(){if(!GX.globe)return l0();cancelAnimationFrame(GX.raf);const step=()=>{if(cur!=='reseau'||GX.mode!=='galaxie'||!$('#gxcanvas'))return;gxTick();gxTick();gxDraw();GX.raf=requestAnimationFrame(step);};GX.raf=requestAnimationFrame(step);};}
+ACT['gx-globe']=()=>{GX.globe=!GX.globe;GX.vel={x:0,y:0};GX.turn=null;renderReseau();};
+{const s0=gxSelect;gxSelect=function(ref,fly){s0(ref,fly);if(GX.globe){GX.vel={x:0,y:0};}};}
 
 /* =========================================================
    DÉMARRAGE
