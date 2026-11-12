@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 env:
   # Colle ici le lien complet de ta playlist (YouTube → Partager → Copier le lien)
-  PLAYLIST_URL: "https://www.youtube.com/playlist?list=https://youtube.com/playlist?list=PLVuNS0FRyajs&si=Qg9IRiscqKQER9he"
+  PLAYLIST_URL: "https://www.youtube.com/playlist?list=PLVuNS0FRyajs"
 permissions:
   contents: write
 concurrency:
@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install yt-dlp
+      - run: pip install requests yt-dlp
       - name: Lire la playlist
         run: python -u scripts/bg3_playlist.py
       - name: Enregistrer la liste dans le dépôt
