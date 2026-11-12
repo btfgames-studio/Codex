@@ -1,7 +1,8 @@
-it la playlist YouTube et écrit data/playlist.json (lu par le codex : YouTube → « Synchroniser la playlist »).
-Lancé par GitHub Actions (fichier .github/workflows/bg3-playlist.yml), une fois par jour ou à la demande."""
+# Robot Playlist BG3 : lit la playlist YouTube et ecrit data/playlist.json
+# (lu par le codex : onglet YouTube, bouton Synchroniser la playlist).
+# Lance par GitHub Actions (.github/workflows/bg3-playlist.yml), une fois par jour ou a la demande.
 import json, os, re, subprocess, sys, time
-
+ 
 url = (os.environ.get("PLAYLIST_URL") or "").strip()
 m = re.search(r"[?&]list=([\w-]+)", url)
 if not m:
@@ -9,7 +10,7 @@ if not m:
 pid = m.group(1)
 if len(pid) < 18:
     print(f"Attention : l'identifiant de playlist « {pid} » semble coupé (trop court).")
-
+ 
 cmd = ["yt-dlp", "--flat-playlist", "--dump-single-json", "--no-warnings", "https://www.youtube.com/playlist?list=" + pid]
 for attempt in range(3):
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -19,7 +20,7 @@ for attempt in range(3):
     time.sleep(20)
 else:
     sys.exit("Impossible de lire la playlist. Vérifie qu'elle est « Publique » ou « Non répertoriée » (pas « Privée »).")
-
+ 
 data = json.loads(r.stdout)
 videos = []
 for i, e in enumerate(data.get("entries") or []):
