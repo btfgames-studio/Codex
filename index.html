@@ -580,6 +580,7 @@ body[data-view="reseau"][data-gx="1"] .gxwrap{flex:1;min-height:0;height:auto!im
 .chk.done .lref{opacity:.6}
 .chk.lsel{outline:2px solid #2e9e62;outline-offset:2px;border-radius:4px}
 .yarn.yl{stroke:#2e9e62}
+.newver{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:80;background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:.6rem 1rem;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;gap:.6rem;align-items:center}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -4295,7 +4296,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='31';
+const APP_VERSION='32';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5715,6 +5716,85 @@ document.addEventListener('pointerdown',e=>{
   if(s)svg.insertAdjacentHTML('beforeend',s);
 };}
 let LST=null;document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('.bc-sticky [data-note]')){clearTimeout(LST);LST=setTimeout(renderStrings,200);}});
+
+/* =========================================================
+   VERSION 32 : HISTORIQUE, RÉCUPÉRATION DES PLANS, PROTECTIONS
+   ========================================================= */
+/* ---------- la sauvegarde indique la version qui l'a faite ---------- */
+{const mb=makeBackup;makeBackup=async function(){const o=await mb();o.app=+APP_VERSION;return o;};}
+GH.remoteApp=0;
+{const fl=ghFetchLatest;ghFetchLatest=async function(c){const o=await fl(c);if(o&&o.app)GH.remoteApp=+o.app;return o;};}
+{const sv=ghSave;ghSave=async function(silent){
+  if(GH.remoteApp&&GH.remoteApp>+APP_VERSION){const m=`Cette page est une ancienne version (v${APP_VERSION}) alors que ta sauvegarde a été faite avec la v${GH.remoteApp}. Recharge la page (Ctrl+F5) avant d’enregistrer, sinon tu risques d’effacer des données.`;if(!silent)alert(m);setSync('err');syncText('Version périmée : recharge la page');GH.log('Envoi bloqué : page en v'+APP_VERSION+', sauvegarde en v'+GH.remoteApp+'.');return;}
+  return sv(silent);};}
+/* ---------- nouvelle version disponible ? ---------- */
+async function checkNewVersion(){
+  if(!STANDALONE||!/^https?:/.test(location.protocol))return;
+  try{const r=await fetch(location.pathname+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const t=await r.text();const m=t.match(/const APP_VERSION='(\d+)'/g);if(!m)return;const v=Math.max(...m.map(x=>+x.match(/\d+/)[0]));
+    if(v>+APP_VERSION&&!$('#newver')){document.body.insertAdjacentHTML('beforeend',`<div id="newver" class="newver" role="alert">Une nouvelle version du codex est disponible (v${v}). <button class="small primary" onclick="location.reload()">Recharger</button></div>`);GH.remoteApp=Math.max(GH.remoteApp,v);}}catch(e){}
+}
+setTimeout(checkNewVersion,4000);setInterval(checkNewVersion,10*60*1000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkNewVersion();});
+
+/* ---------- copies de secours locales avant toute opération risquée ---------- */
+async function safetySnap(reason){
+  if(!STANDALONE)return;
+  try{const o={codex:'bg3',snap:true,reason,date:new Date().toISOString(),app:+APP_VERSION};for(const k of Store.keys)o[k]=clone(Store.pack(k));
+    await IDB.set('snap:'+Date.now(),o);const keys=(await IDB.keys()).filter(k=>String(k).startsWith('snap:')).sort();
+    for(const k of keys.slice(0,Math.max(0,keys.length-10)))await IDB.req('readwrite',s=>s.delete(k));}catch(e){console.warn('copie de secours',e);}
+}
+{const ab=applyBackup;applyBackup=async function(o,merge){await safetySnap(merge?'avant une fusion':'avant un chargement');return ab(o,merge);};}
+{const del=ACT['sheet-del'];ACT['sheet-del']=t=>{safetySnap('avant suppression d’un plan').then(()=>del(t));};}
+
+/* ---------- extraire les plans contenus dans une sauvegarde ---------- */
+function plansOf(o){
+  const b=o&&o.board;if(!b)return [];const out=[];
+  const clean=x=>{const y=clone(x||{});delete y.sheets;return {cards:y.cards||[],strokes:y.strokes||[],links:y.links||[],z:y.z||1,seeded:true};};
+  if(b.sheets&&Array.isArray(b.sheets.list)){for(const t of b.sheets.list){const data=t.id===b.sheets.cur?b:(b.sheets.store||{})[t.id];if(data)out.push({name:t.name,data:clean(data)});}}
+  else out.push({name:'Tableau',data:clean(b)});
+  return out.filter(p=>p.data.cards.length||p.data.strokes.length);
+}
+function planSummary(p){const names=p.data.cards.map(c=>c.type==='sticky'||c.type==='text'?(c.title||stripTok(String(c.html||'').replace(/<[^>]+>/g,' ')).trim().slice(0,24)):(ent(c.ref)||{}).name).filter(Boolean);return `${p.data.cards.length} carte${p.data.cards.length>1?'s':''}${p.data.strokes.length?', '+p.data.strokes.length+' dessin'+(p.data.strokes.length>1?'s':''):''}${names.length?' : '+names.slice(0,5).map(esc).join(', ')+(names.length>5?'…':''):''}`;}
+let RECOV=[];
+function recoverPlan(i,label){
+  const p=RECOV[i];if(!p)return;const id=uid();
+  S.sheets.list.push({id,name:`${p.name} (récupéré ${label})`});S.sheets.store[id]=clone(p.data);Store.touch('board');
+  toast(`Plan « ${p.name} » récupéré dans un nouvel onglet. Rien d’autre n’a été modifié.`);
+  if(cur==='accueil'){const bar=$('.sheettabs');if(bar)bar.outerHTML=sheetTabsHTML();}
+}
+function plansListHTML(o,label){
+  const ps=plansOf(o);const base=RECOV.length;RECOV.push(...ps);
+  return ps.length?ps.map((p,i)=>`<div class="mrow"><b>${esc(p.name)}</b><span class="small muted">${planSummary(p)}</span><button class="small primary" data-act="recov-plan" data-i="${base+i}" data-l="${esc(label)}">↩ Récupérer comme nouvel onglet</button></div>`).join(''):'<p class="small muted">Aucun plan avec du contenu dans cette version.</p>';
+}
+ACT['recov-plan']=t=>recoverPlan(+t.dataset.i,t.dataset.l);
+
+/* ---------- fenêtre : historique des sauvegardes ---------- */
+async function historyDialog(){
+  RECOV=[];
+  openDlg('Historique et récupération',`<p class="small muted">Retrouve un plan perdu dans une ancienne sauvegarde. Il revient dans un <b>nouvel onglet</b> : rien de ce que tu as aujourd’hui n’est effacé.</p>
+    <h3>Sur GitHub</h3><div id="hist-gh"><p class="small muted">Chargement de l’historique…</p></div>
+    <h3 style="margin-top:1rem">Copies de secours sur cet appareil</h3><div id="hist-local"><p class="small muted">Chargement…</p></div>
+    <div id="hist-view" style="margin-top:1rem"></div>`,{wide:true});
+  const c=GH.cfg();
+  if(!STANDALONE||!c||!c.token){$('#hist-gh').innerHTML='<p class="small muted">La synchronisation GitHub n’est pas réglée sur cet appareil (⚙).</p>';}
+  else{
+    try{const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(c.owner)}/${encodeURIComponent(c.repo)}/commits?path=${encodeURIComponent(c.path)}&sha=${encodeURIComponent(c.branch)}&per_page=40`,{headers:GH.headers(c),cache:'no-store'});
+      const j=await r.json();if(!r.ok)throw new Error(ghErr(r,j));
+      $('#hist-gh').innerHTML=j.length?`<div class="mlist">${j.map(x=>`<div class="mrow"><span>${esc(hhmm(x.commit.author.date))}</span><span class="small muted">${esc(String(x.commit.message||'').replace(/^Codex : sauvegarde /,''))}</span><button class="small" data-act="hist-open" data-sha="${esc(x.sha)}" data-l="${esc(hhmm(x.commit.author.date))}">Voir les plans</button></div>`).join('')}</div>`:'<p class="small muted">Aucune sauvegarde trouvée.</p>';
+    }catch(e){$('#hist-gh').innerHTML=`<p class="small" style="color:var(--danger)">${esc(e.message||'Historique indisponible')}</p>`;}
+  }
+  if(STANDALONE){try{const keys=(await IDB.keys()).filter(k=>String(k).startsWith('snap:')).sort().reverse();
+    $('#hist-local').innerHTML=keys.length?`<div class="mlist">${(await Promise.all(keys.map(k=>IDB.get(k)))).map((o,i)=>`<div class="mrow"><span>${esc(hhmm(o.date))}</span><span class="small muted">${esc(o.reason||'')}</span><button class="small" data-act="hist-local" data-k="${esc(keys[i])}" data-l="${esc(hhmm(o.date))}">Voir les plans</button></div>`).join('')}</div>`:'<p class="small muted">Pas encore de copie de secours. Une copie est faite automatiquement avant chaque chargement ou suppression de plan.</p>';}catch(e){$('#hist-local').innerHTML='<p class="small muted">Indisponible.</p>';}}
+  else $('#hist-local').innerHTML='<p class="small muted">Disponible sur ta page GitHub.</p>';
+}
+ACT['hist-open']=async t=>{const c=GH.cfg();const v=$('#hist-view');v.innerHTML='<p class="small muted">Chargement de cette version…</p>';v.scrollIntoView({block:'nearest'});
+  try{const r=await fetch(GH.url(c)+'?ref='+encodeURIComponent(t.dataset.sha),{headers:GH.headers(c,'application/vnd.github.raw+json'),cache:'no-store'});if(!r.ok)throw new Error('Version introuvable');const o=JSON.parse(await r.text());
+    v.innerHTML=`<h3>Plans de la sauvegarde du ${esc(t.dataset.l)}</h3>${plansListHTML(o,t.dataset.l)}`;}catch(e){v.innerHTML=`<p class="small" style="color:var(--danger)">${esc(e.message)}</p>`;}};
+ACT['hist-local']=async t=>{const o=await IDB.get(t.dataset.k);const v=$('#hist-view');v.innerHTML=o?`<h3>Plans de la copie du ${esc(t.dataset.l)}</h3>${plansListHTML(o,t.dataset.l)}`:'<p class="small muted">Copie introuvable.</p>';v.scrollIntoView({block:'nearest'});};
+ACT['history']=()=>historyDialog();
+/* accès : bouton dans ⚙ et à côté des onglets du tableau */
+{const g=ghSettings;ghSettings=function(){g();const f=$('#ghform');if(f)f.insertAdjacentHTML('beforebegin','<div class="row" style="margin:.3rem 0"><button data-act="history">🕘 Historique et récupération des plans</button></div>');};}
+{const st=sheetTabsHTML;sheetTabsHTML=function(){return st().replace('<button class="stadd" data-act="sheet-add"','<button class="stadd" data-act="history" title="Historique : récupérer un plan perdu" aria-label="Historique des plans">🕘</button><button class="stadd" data-act="sheet-add"');};}
 
 /* =========================================================
    DÉMARRAGE
