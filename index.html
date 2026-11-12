@@ -563,6 +563,23 @@ body[data-view="accueil"] .boardwrap{flex:1;min-height:0;height:auto!important;b
 ::highlight(mention-sure){text-decoration-line:underline;text-decoration-style:dotted;text-decoration-thickness:2px;text-decoration-color:#a98bff;background-color:rgba(169,139,255,.14)}
 ::highlight(mention-prob){background-color:rgba(245,197,66,.28);text-decoration-line:underline;text-decoration-style:wavy;text-decoration-color:#e0a526}
 .gxbar [data-act="gx-globe"]{display:none}
+body[data-view="reseau"][data-gx="1"] main{max-width:none;padding:6px 8px 0;margin:0}
+body[data-view="reseau"][data-gx="1"] #v-reseau{display:flex;flex-direction:column;height:calc(100vh - 6px);height:calc(100dvh - 6px)}
+body[data-view="reseau"][data-gx="1"] .gxbar{margin-bottom:.4rem}
+body[data-view="reseau"][data-gx="1"] .gxwrap{flex:1;min-height:0;height:auto!important;border-radius:10px}
+@media (max-width:760px), (pointer:coarse) and (max-width:1100px){body[data-view="reseau"][data-gx="1"] #v-reseau{height:calc(100vh - 58px);height:calc(100dvh - 58px)}}
+.sheettabs{display:flex;align-items:flex-end;gap:2px;padding:0 .4rem;overflow-x:auto;flex:none;border-top:1px solid var(--line);background:var(--surface2);min-height:2.3rem}
+.stadd{border:0;background:transparent;font-size:1.3rem;line-height:1;padding:.3rem .7rem;color:var(--muted);border-radius:6px;align-self:center}
+.stadd:hover{color:var(--ink);background:var(--surface)}
+.stab{display:inline-flex;align-items:center;gap:.4rem;border:1px solid transparent;border-top:0;border-radius:0 0 8px 8px;background:transparent;padding:.4rem .9rem .45rem;color:var(--muted);font-weight:500;white-space:nowrap;margin-top:-1px}
+.stab:hover{color:var(--ink)}
+.stab[aria-selected="true"]{background:var(--surface);color:var(--accent);border-color:var(--line);box-shadow:0 2px 0 var(--accent) inset}
+.stx{font-size:.75rem;color:var(--muted);padding:0 .15rem;border-radius:4px}
+.stx:hover{color:var(--danger);background:var(--surface2)}
+.lref{display:inline-block;margin-left:.3rem;padding:0 .35rem;border-radius:999px;background:rgba(46,158,98,.18);border:1px solid rgba(46,158,98,.5);color:#1d6b41;font-size:.82em;font-weight:700;cursor:pointer;white-space:nowrap;text-decoration:none}
+.chk.done .lref{opacity:.6}
+.chk.lsel{outline:2px solid #2e9e62;outline-offset:2px;border-radius:4px}
+.yarn.yl{stroke:#2e9e62}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -4009,9 +4026,9 @@ function cleanRich(html){
   const walk=n=>{[...n.childNodes].forEach(c=>{
     if(c.nodeType===1){if(/^(SCRIPT|STYLE|IFRAME|OBJECT|IMG|SVG)$/i.test(c.tagName)){c.remove();return;}walk(c);if(!OK.has(c.tagName)){c.replaceWith(...c.childNodes);return;}
       const keepU=c.tagName==='SPAN'&&/underline/.test(c.getAttribute('style')||'');const keepB=c.tagName==='SPAN'&&/font-weight:\s*(bold|[6-9]00)/.test(c.getAttribute('style')||'');const keepI=c.tagName==='SPAN'&&/italic/.test(c.getAttribute('style')||'');
-      const cl0=c.getAttribute('class')||'';const keepCls=(c.tagName==='DIV'&&/\bchk\b/.test(cl0))?(/\bdone\b/.test(cl0)?'chk done':'chk'):(c.tagName==='SPAN'&&/\bcb\b/.test(cl0))?'cb':'';
+      const cl0=c.getAttribute('class')||'';const dref=c.getAttribute('data-ref');const keepCls=(c.tagName==='SPAN'&&/\blref\b/.test(cl0))?'lref':(c.tagName==='DIV'&&/\bchk\b/.test(cl0))?(/\bdone\b/.test(cl0)?'chk done':'chk'):(c.tagName==='SPAN'&&/\bcb\b/.test(cl0))?'cb':'';
       [...c.attributes].forEach(a=>c.removeAttribute(a.name));
-      if(keepCls){c.setAttribute('class',keepCls);if(keepCls==='cb')c.setAttribute('contenteditable','false');}
+      if(keepCls){c.setAttribute('class',keepCls);if(keepCls==='cb'||keepCls==='lref')c.setAttribute('contenteditable','false');if(dref&&/^(chk|chk done|lref)$/.test(keepCls)&&/^[a-z]+:[\w.\-]+$/.test(dref))c.setAttribute('data-ref',dref);}
       if(keepU||keepB||keepI){let inner=c;if(keepU){const u=document.createElement('u');u.append(...inner.childNodes);inner.append(u);}if(keepB){const b=document.createElement('b');b.append(...c.childNodes);c.append(b);}if(keepI){const i=document.createElement('i');i.append(...c.childNodes);c.append(i);}}
     }else if(c.nodeType!==3)c.remove();});};
   walk(t.content);return t.innerHTML;
@@ -4278,7 +4295,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='30';
+const APP_VERSION='31';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5013,7 +5030,7 @@ function boardSize(){
 /* ---------- cases à cocher dans les post-it ---------- */
 const CB_HTML='<div class="chk"><span class="cb" contenteditable="false">☐</span>&nbsp;</div>';
 function normChecklist(ed){
-  ed.querySelectorAll('div.chk').forEach(d=>{const f=d.firstElementChild;if(!f||!f.classList.contains('cb')){d.classList.remove('done');const s=document.createElement('span');s.className='cb';s.contentEditable='false';s.textContent='☐';d.prepend(s);}
+  ed.querySelectorAll('div.chk').forEach(d=>{const f=d.firstElementChild;if(!f||!f.classList.contains('cb')){d.classList.remove('done');d.removeAttribute('data-ref');d.querySelectorAll('.lref').forEach(x=>x.remove());const s=document.createElement('span');s.className='cb';s.contentEditable='false';s.textContent='☐';d.prepend(s);}
     else f.textContent=d.classList.contains('done')?'☑':'☐';
     d.querySelectorAll('span.cb').forEach((x,i)=>{if(i>0)x.remove();});});
 }
@@ -5618,6 +5635,86 @@ gxLoop=function(){
     GX.raf=requestAnimationFrame(step);};
   GX.raf=requestAnimationFrame(step);
 };
+
+/* =========================================================
+   VERSION 31 : RÉSEAU PLEIN ÉCRAN, ONGLETS DU TABLEAU, CASES ÉPINGLÉES
+   ========================================================= */
+/* ---------- 1. Galaxie et Carte en pleine page ---------- */
+{const r=renderReseau;renderReseau=function(){document.body.dataset.gx=GX.mode==='galaxie'?'1':'';r();};}
+{const r0=route;route=function(){r0();if(cur!=='reseau')document.body.dataset.gx='';};}
+
+/* ---------- 2. Onglets du tableau (plans) ---------- */
+S.sheets={list:[{id:'main',name:'Plan 1'}],cur:'main',store:{}};
+{const p=Store.pack.bind(Store);Store.pack=k=>{const d=p(k);if(k==='board'){const o={...d};delete o.sheets;o.sheets={list:S.sheets.list,cur:S.sheets.cur,store:S.sheets.store};return o;}return d;};}
+{const u=Store.unpack.bind(Store);Store.unpack=(k,d)=>{u(k,d);if(k==='board'&&d){if(d.sheets&&Array.isArray(d.sheets.list)&&d.sheets.list.length){S.sheets={list:d.sheets.list,cur:d.sheets.cur||d.sheets.list[0].id,store:d.sheets.store||{}};}delete S.board.sheets;}};}
+const blankBoard=()=>({cards:[],strokes:[],z:1,links:[],seeded:true});
+function sheetSwitch(id){
+  if(id===S.sheets.cur)return;
+  const snap=clone(S.board);delete snap.sheets;S.sheets.store[S.sheets.cur]=snap;
+  const next=S.sheets.store[id]||blankBoard();delete S.sheets.store[id];
+  S.board={...blankBoard(),...next};S.sheets.cur=id;
+  BMULTI.clear();BSEL=null;BH.stack=[];BH.redo=[];BH.last=null;LINESEL=null;
+  Store.touch('board');renderAccueil();
+}
+function sheetTabsHTML(){
+  return `<div class="sheettabs" role="tablist" aria-label="Plans du tableau">
+    <button class="stadd" data-act="sheet-add" title="Nouveau plan" aria-label="Nouveau plan">+</button>
+    ${S.sheets.list.map(t=>`<button class="stab" role="tab" data-act="sheet-go" data-id="${esc(t.id)}" aria-selected="${t.id===S.sheets.cur}" title="Double-clic pour renommer">${esc(t.name)}${t.id===S.sheets.cur&&S.sheets.list.length>1?`<span class="stx" data-act="sheet-del" data-id="${esc(t.id)}" title="Supprimer ce plan" aria-label="Supprimer ce plan">✕</span>`:''}</button>`).join('')}
+  </div>`;
+}
+ACT['sheet-go']=t=>sheetSwitch(t.dataset.id);
+ACT['sheet-add']=()=>{const n=S.sheets.list.length+1;const name=prompt('Nom du nouveau plan',`Plan ${n}`);if(name===null)return;const id=uid();S.sheets.list.push({id,name:name.trim()||`Plan ${n}`});S.sheets.store[id]=blankBoard();sheetSwitch(id);};
+ACT['sheet-del']=t=>{const id=t.dataset.id;const tab=S.sheets.list.find(x=>x.id===id);if(!tab||S.sheets.list.length<2)return;if(!confirm(`Supprimer le plan « ${tab.name} » et tout ce qu’il contient ?`))return;
+  const i=S.sheets.list.indexOf(tab);S.sheets.list.splice(i,1);const next=S.sheets.list[Math.max(0,i-1)].id;
+  const nb=S.sheets.store[next]||blankBoard();delete S.sheets.store[next];delete S.sheets.store[id];S.board={...blankBoard(),...nb};S.sheets.cur=next;BMULTI.clear();BSEL=null;BH.stack=[];BH.redo=[];BH.last=null;Store.touch('board');renderAccueil();};
+document.addEventListener('dblclick',e=>{const t=e.target.closest&&e.target.closest('.stab');if(!t)return;const tab=S.sheets.list.find(x=>x.id===t.dataset.id);if(!tab)return;const n=prompt('Renommer le plan',tab.name);if(n&&n.trim()){tab.name=n.trim();Store.touch('board');const bar=$('.sheettabs');if(bar)bar.outerHTML=sheetTabsHTML();}});
+{const ra=renderAccueil;renderAccueil=function(){ra();const w=$('#boardwrap');if(w&&!$('.sheettabs'))w.insertAdjacentHTML('afterend',sheetTabsHTML());};}
+
+/* ---------- 3. Relier une case à cocher à une fiche ---------- */
+let LINESEL=null;
+function setLineRef(line,ref){
+  line.querySelectorAll('.lref').forEach(x=>x.remove());
+  if(ref){const e=ent(ref);line.dataset.ref=ref;const sp=document.createElement('span');sp.className='lref';sp.contentEditable='false';sp.dataset.ref=ref;sp.textContent=(e?e.icon+' '+e.name:'🔗 fiche');line.append(' ');line.append(sp);}
+  else line.removeAttribute('data-ref');
+  const ed=line.closest('[data-note]');if(ed){normChecklist(ed);saveNoteEl(ed);}renderStrings();
+}
+function caretLine(ed){const sel=window.getSelection();if(!sel||!sel.rangeCount||!ed.contains(sel.anchorNode))return null;let n=sel.anchorNode.nodeType===1?sel.anchorNode:sel.anchorNode.parentElement;return n.closest('div.chk');}
+ACT['line-link']=()=>{
+  const c=S.board.cards.find(x=>x.id===BSEL);if(!c)return;const ed=$(`[data-note="${c.id}"]`);if(!ed)return;
+  const line=caretLine(ed)||LINESEL;if(!line){toast('Place ton curseur sur une case à cocher, puis clique sur « Lier la case ».');return;}
+  const idx=[...ed.querySelectorAll('div.chk')].indexOf(line);
+  openPicker(ref=>{closeDlg();const ed2=$(`[data-note="${c.id}"]`);const l2=ed2&&ed2.querySelectorAll('div.chk')[idx];if(l2)setLineRef(l2,ref);toast('Case reliée à la fiche.');},{title:'Relier cette case à…'});
+};
+ACT['line-unlink']=()=>{const c=S.board.cards.find(x=>x.id===BSEL);if(!c)return;const ed=$(`[data-note="${c.id}"]`);const line=ed&&(caretLine(ed)||LINESEL);if(line&&line.dataset.ref){setLineRef(line,null);toast('Lien de la case retiré.');}};
+{const c1=ctxHTML;ctxHTML=function(){let h=c1();const c=S.board.cards.find(x=>x.id===BSEL);
+  if(c&&c.type==='sticky')h=h.replace('<button class="small danger" data-act="note-del">','<button class="small" data-act="line-link" title="Relier la case où se trouve ton curseur à une fiche (PNJ, objet, quête…)">📌 Lier la case</button><button class="small" data-act="line-unlink" title="Retirer le lien de la case">✕ Délier</button><button class="small danger" data-act="note-del">');
+  return h;};}
+document.addEventListener('mousedown',e=>{if(e.target.closest&&e.target.closest('[data-act="line-link"],[data-act="line-unlink"]'))e.preventDefault();});
+document.addEventListener('click',e=>{const l=e.target.closest&&e.target.closest('[data-note] .lref');if(!l)return;e.preventDefault();e.stopPropagation();openRef(l.dataset.ref);},true);
+/* mode 🧷 Relier : clic sur une case, puis sur une carte de fiche */
+document.addEventListener('pointerdown',e=>{
+  if(cur!=='accueil'||BV2.mode!=='link')return;const wrap=e.target.closest&&e.target.closest('#boardwrap');if(!wrap)return;
+  const line=e.target.closest('.bc-sticky div.chk');
+  if(line){e.preventDefault();e.stopPropagation();$$('.chk.lsel').forEach(x=>x.classList.remove('lsel'));LINESEL=line;line.classList.add('lsel');toast('Clique maintenant sur la carte de la fiche à relier à cette case.');return;}
+  if(LINESEL){const card=e.target.closest('.bcard');e.preventDefault();e.stopPropagation();
+    const c=card&&S.board.cards.find(x=>x.id===card.dataset.cid);
+    if(c&&c.ref&&c.type!=='graph'&&c.type!=='sticky'){setLineRef(LINESEL,c.ref);toast('Case reliée à « '+((ent(c.ref)||{}).name||'la fiche')+' ».');}
+    else if(card)toast('Choisis une carte de fiche (PNJ, objet, quête…), pas un post-it.');
+    LINESEL.classList.remove('lsel');LINESEL=null;}
+},true);
+/* ficelles depuis les cases reliées */
+{const rs=renderStrings;renderStrings=function(){
+  rs();const svg=$('#bstrings'),b=$('#board');if(!svg||!b||!BV2.strings)return;
+  const z=S.board.z||1;const br=b.getBoundingClientRect();const byRef=new Map();S.board.cards.forEach(c=>{if(c.ref&&c.type!=='graph'&&!byRef.has(c.ref))byRef.set(c.ref,c);});
+  let s='';
+  $$('#board .bc-sticky div.chk[data-ref]').forEach(line=>{const tc=byRef.get(line.dataset.ref);if(!tc)return;
+    const r=line.getBoundingClientRect();const card=line.closest('.bcard');const cr=card.getBoundingClientRect();
+    const x1=(cr.right-br.left)/z-8,y1=(r.top+r.height/2-br.top)/z;const x2=tc.x+tc.w/2,y2=tc.y+9;
+    const d=Math.hypot(x2-x1,y2-y1);const sag=Math.min(110,d*.16);const path=`M${x1},${y1} Q${(x1+x2)/2},${Math.max(y1,y2)+sag} ${x2},${y2}`;
+    s+=`<path class="yarn yl" d="${path}"/><g class="bpin" transform="translate(${x1},${y1})"><circle r="5" fill="#2e9e62"/><circle r="5" fill="url(#pinshine)"/></g>`;});
+  if(s)svg.insertAdjacentHTML('beforeend',s);
+};}
+let LST=null;document.addEventListener('input',e=>{if(e.target.closest&&e.target.closest('.bc-sticky [data-note]')){clearTimeout(LST);LST=setTimeout(renderStrings,200);}});
 
 /* =========================================================
    DÉMARRAGE
