@@ -562,6 +562,7 @@ body[data-view="accueil"] .boardwrap{flex:1;min-height:0;height:auto!important;b
 .mlist{display:flex;flex-direction:column;gap:.4rem;max-height:46vh;overflow:auto}
 ::highlight(mention-sure){text-decoration-line:underline;text-decoration-style:dotted;text-decoration-thickness:2px;text-decoration-color:#a98bff;background-color:rgba(169,139,255,.14)}
 ::highlight(mention-prob){background-color:rgba(245,197,66,.28);text-decoration-line:underline;text-decoration-style:wavy;text-decoration-color:#e0a526}
+.gxbar [data-act="gx-globe"]{display:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -4277,7 +4278,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='28';
+const APP_VERSION='29';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5573,6 +5574,12 @@ gxLoop=function(){
 ACT['gx-spin']=t=>{GX.spin=!GX.spin;t.setAttribute('aria-pressed',GX.spin);GX.lastI=performance.now();};
 document.addEventListener('change',e=>{if(e.target.id==='gx-density'){GX.density=+e.target.value;renderReseau();}});
 {const im0=gxImg;gxImg=function(e){const r=im0(e);return r;};}
+
+/* ---------- réseau : 4 onglets (globe, carte à plat, liste, arbre) ---------- */
+{const r1=renderReseau;renderReseau=function(){r1();const seg=$('.gxbar .seg[aria-label="Vue"]');if(!seg)return;
+  const curk=GX.mode==='galaxie'?(GX.globe?'galaxie':'carte'):GX.mode;
+  seg.innerHTML=[['galaxie','🌐 Galaxie'],['carte','✨ Carte'],['liste','☰ Liste'],['arbre','🌿 Arbre']].map(([k,n])=>`<button data-act="gx-view" data-k="${k}" aria-pressed="${curk===k}">${n}</button>`).join('');};}
+ACT['gx-view']=t=>{const k=t.dataset.k;GX.vel={x:0,y:0};GX.turn=null;if(k==='galaxie'){GX.mode='galaxie';GX.globe=true;}else if(k==='carte'){GX.mode='galaxie';GX.globe=false;}else GX.mode=k;renderReseau();};
 
 /* =========================================================
    DÉMARRAGE
