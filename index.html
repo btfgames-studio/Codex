@@ -4296,7 +4296,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='32';
+const APP_VERSION='33';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5795,6 +5795,27 @@ ACT['history']=()=>historyDialog();
 /* accès : bouton dans ⚙ et à côté des onglets du tableau */
 {const g=ghSettings;ghSettings=function(){g();const f=$('#ghform');if(f)f.insertAdjacentHTML('beforebegin','<div class="row" style="margin:.3rem 0"><button data-act="history">🕘 Historique et récupération des plans</button></div>');};}
 {const st=sheetTabsHTML;sheetTabsHTML=function(){return st().replace('<button class="stadd" data-act="sheet-add"','<button class="stadd" data-act="history" title="Historique : récupérer un plan perdu" aria-label="Historique des plans">🕘</button><button class="stadd" data-act="sheet-add"');};}
+
+/* =========================================================
+   VERSION 33 : SYNCHRONISATION DE LA PLAYLIST YOUTUBE
+   ========================================================= */
+async function playlistSync(silent){
+  if(!STANDALONE||!/^https?:/.test(location.protocol)){if(!silent)toast('La synchronisation de la playlist fonctionne depuis ta page GitHub.');return;}
+  let j;try{const r=await fetch('data/playlist.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;j=await r.json();}
+  catch(e){if(!silent)toast('Fichier data/playlist.json introuvable : lance d’abord le robot « Playlist BG3 » dans l’onglet Actions de ton dépôt.');return;}
+  const have=new Set(S.videos.map(v=>ytId(v.url)).filter(Boolean));let n=0;
+  const act=0;let order=S.videos.filter(v=>(+v.act||0)===act).length;
+  for(const x of (j.videos||[])){if(!x.id||have.has(x.id))continue;
+    S.videos.push({id:uid(),url:x.short?`https://www.youtube.com/shorts/${x.id}`:`https://www.youtube.com/watch?v=${x.id}`,title:x.title||'',cat:'',act,order:++order,seen:false,place:'',notes:'',items:[],npcs:[],spells:[],marker:null,created:Date.now(),fromPlaylist:true});have.add(x.id);n++;}
+  S.prefs.playlistSync=j.date||new Date().toISOString();Store.touch('prefs');
+  if(n)Store.touch('videos');
+  if(cur==='youtube')renderYoutube();
+  if(n||!silent)toast(n?`🔄 ${n} nouvelle${n>1?'s':''} vidéo${n>1?'s':''} ajoutée${n>1?'s':''} depuis ta playlist (rangée${n>1?'s':''} dans « Sans acte »).`:'Playlist déjà à jour.');
+}
+ACT['yt-sync']=()=>playlistSync(false);
+{const r=renderYoutube;renderYoutube=function(){r();const row=$('#v-youtube .split .panel .row');if(row&&!$('[data-act="yt-sync"]',row))row.insertAdjacentHTML('afterend',`<div class="row" style="margin-top:.5rem"><button data-act="yt-sync" title="Ajoute les vidéos de ta playlist qui ne sont pas encore dans le codex">🔄 Synchroniser la playlist</button><span class="small muted">${S.prefs.playlistSync?'Liste du '+esc(hhmm(S.prefs.playlistSync)):''}</span></div>`);};}
+/* une fois par jour, au démarrage, sans rien demander */
+setTimeout(()=>{if(!STANDALONE)return;const last=S.prefs.playlistCheck||0;if(Date.now()-last>20*3600*1000){S.prefs.playlistCheck=Date.now();playlistSync(true);}},6000);
 
 /* =========================================================
    DÉMARRAGE
