@@ -1,0 +1,33 @@
+name: Playlist BG3
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+env:
+  # Colle ici le lien complet de ta playlist (YouTube → Partager → Copier le lien)
+  PLAYLIST_URL: "https://www.youtube.com/playlist?list=https://youtube.com/playlist?list=PLVuNS0FRyajs&si=Qg9IRiscqKQER9he"
+permissions:
+  contents: write
+concurrency:
+  group: bg3-playlist
+  cancel-in-progress: false
+jobs:
+  playlist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install yt-dlp
+      - name: Lire la playlist
+        run: python -u scripts/bg3_playlist.py
+      - name: Enregistrer la liste dans le dépôt
+        run: |
+          git config user.name "codex-bot"
+          git config user.email "codex-bot@users.noreply.github.com"
+          git add data/playlist.json
+          git diff --cached --quiet || git commit -m "Playlist BG3 synchronisée"
+          git pull --rebase --autostash || true
+          git push
