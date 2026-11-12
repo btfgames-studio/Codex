@@ -4278,7 +4278,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='29';
+const APP_VERSION='30';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5500,13 +5500,13 @@ GX.density=150;GX.spin=false;GX.sprites=new Map();GX.fullCount=0;
 /* 1. densité : on ne garde que les éléments les plus reliés, plus l'entourage de la sélection */
 {const gb=gxBuild;gxBuild=function(){
   gb();GX.fullCount=GX.nodes.length;
-  if(!GX.globe||!GX.density||GX.nodes.length<=GX.density)return;
+  if(GX.mode!=='galaxie'||!GX.density||GX.nodes.length<=GX.density)return;
   const keep=new Set([...GX.nodes].sort((a,b)=>b.deg-a.deg).slice(0,GX.density));
   const sel=GX.idx.get(GX.sel);if(sel){keep.add(sel);for(const [a,b] of GX.edges){if(a===sel)keep.add(b);if(b===sel)keep.add(a);}}
   GX.nodes=GX.nodes.filter(n=>keep.has(n));GX.idx=new Map(GX.nodes.map(n=>[n.ref,n]));GX.edges=GX.edges.filter(([a,b])=>keep.has(a)&&keep.has(b));
 };}
 /* 2. disposition calculée une fois, puis figée en mode globe */
-{const sel0=gxSelect;gxSelect=function(ref,fly){const was=GX.idx.has(ref);sel0(ref,fly);if(GX.globe&&ref&&GX.density&&GX.fullCount>GX.density){gxBuild();for(let i=0;i<80;i++)gxTick();GX.alpha=0;gxPanel();if(fly)setTimeout(()=>gTurnTo(ref),30);}};}
+{const sel0=gxSelect;gxSelect=function(ref,fly){const was=GX.idx.has(ref);sel0(ref,fly);if(ref&&GX.density&&GX.fullCount>GX.density&&!GX.idx.has(ref)||(ref&&GX.density&&GX.fullCount>GX.density&&GX.mode==='galaxie')){gxBuild();for(let i=0;i<80;i++)gxTick();GX.alpha=0;gxPanel();if(fly)setTimeout(()=>gxFly(ref),30);}};}
 /* 3. étoiles pré-dessinées (une image par étoile et par taille) */
 function gSprite(n,r){
   const im=r>=9?gxImg(n.e):null;const key=n.ref+'|'+Math.round(r)+'|'+(im?1:0);let c=GX.sprites.get(key);if(c)return c;
@@ -5570,7 +5570,7 @@ gxLoop=function(){
   GX.raf=requestAnimationFrame(step);
 };
 {const r0=renderReseau;renderReseau=function(){GX.sprites.clear();r0();if(GX.globe&&GX.mode==='galaxie'){GX.alpha=0;GX.lastI=performance.now();gxDraw();}
-  const bar=$('.gxbar');if(bar&&GX.globe&&GX.mode==='galaxie'&&!$('#gx-density')){const b=$('[data-act="gx-globe"]',bar);if(b)b.insertAdjacentHTML('afterend',`<select id="gx-density" aria-label="Nombre d’étoiles affichées" title="Nombre d’étoiles affichées sur le globe">${[[60,'60 étoiles'],[150,'150 étoiles'],[400,'400 étoiles'],[0,'Toutes']].map(([v,n])=>opt(v,n+(v&&GX.fullCount>v&&+GX.density===v?' sur '+GX.fullCount:''),GX.density)).join('')}</select><button class="chip gxchip" data-act="gx-spin" aria-pressed="${GX.spin}" style="--gc:var(--gc-map)" title="Rotation automatique">↻ Rotation</button>`);}};}
+  const bar=$('.gxbar');if(bar&&GX.mode==='galaxie'&&!$('#gx-density')){const b=$('[data-act="gx-globe"]',bar);if(b)b.insertAdjacentHTML('afterend',`<select id="gx-density" aria-label="Nombre d’étoiles affichées" title="Nombre d’étoiles affichées sur le globe">${[[60,'60 étoiles'],[150,'150 étoiles'],[400,'400 étoiles'],[0,'Toutes']].map(([v,n])=>opt(v,n+(v&&GX.fullCount>v&&+GX.density===v?' sur '+GX.fullCount:''),GX.density)).join('')}</select>${GX.globe?`<button class="chip gxchip" data-act="gx-spin" aria-pressed="${GX.spin}" style="--gc:var(--gc-map)" title="Rotation automatique">↻ Rotation</button>`:''}`);}};}
 ACT['gx-spin']=t=>{GX.spin=!GX.spin;t.setAttribute('aria-pressed',GX.spin);GX.lastI=performance.now();};
 document.addEventListener('change',e=>{if(e.target.id==='gx-density'){GX.density=+e.target.value;renderReseau();}});
 {const im0=gxImg;gxImg=function(e){const r=im0(e);return r;};}
@@ -5580,6 +5580,44 @@ document.addEventListener('change',e=>{if(e.target.id==='gx-density'){GX.density
   const curk=GX.mode==='galaxie'?(GX.globe?'galaxie':'carte'):GX.mode;
   seg.innerHTML=[['galaxie','🌐 Galaxie'],['carte','✨ Carte'],['liste','☰ Liste'],['arbre','🌿 Arbre']].map(([k,n])=>`<button data-act="gx-view" data-k="${k}" aria-pressed="${curk===k}">${n}</button>`).join('');};}
 ACT['gx-view']=t=>{const k=t.dataset.k;GX.vel={x:0,y:0};GX.turn=null;if(k==='galaxie'){GX.mode='galaxie';GX.globe=true;}else if(k==='carte'){GX.mode='galaxie';GX.globe=false;}else GX.mode=k;renderReseau();};
+
+/* ---------- carte à plat allégée ---------- */
+function gxDrawFlat(){
+  const cv=$('#gxcanvas');if(!cv)return;const ctx=cv.getContext&&cv.getContext('2d');if(!ctx)return;
+  const dpr=Math.min(1.5,window.devicePixelRatio||1);const W=cv.clientWidth,H=cv.clientHeight;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);}
+  ctx.setTransform(1,0,0,1,0,0);const bgc=gBackground(W,H,dpr);if(bgc)ctx.drawImage(bgc,0,0);else{ctx.fillStyle='#08060f';ctx.fillRect(0,0,cv.width,cv.height);}
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const {x:cx,y:cy,z}=GX.cam;
+  for(const n of GX.nodes){n.sx=W/2+(n.x-cx)*z;n.sy=H/2+(n.y-cy)*z;}
+  const on=n=>n.sx>-60&&n.sy>-60&&n.sx<W+60&&n.sy<H+60;
+  const act=GX.hover||GX.idx.get(GX.sel);const near=new Set();if(act){near.add(act);for(const [a,b] of GX.edges){if(a===act)near.add(b);if(b===act)near.add(a);}}
+  ctx.lineCap='round';ctx.lineWidth=1;ctx.strokeStyle='rgb(190,175,255)';ctx.globalAlpha=act?.08:.18;ctx.beginPath();const hot=[];
+  for(const e of GX.edges){const [a,b]=e;if(act&&(a===act||b===act)){hot.push(e);continue;}if(!on(a)&&!on(b))continue;ctx.moveTo(a.sx,a.sy);ctx.lineTo(b.sx,b.sy);}
+  ctx.stroke();ctx.globalAlpha=.95;ctx.lineWidth=2;
+  for(const [a,b] of hot){ctx.strokeStyle=typeColor((a===act?b:a).e.t);ctx.beginPath();ctx.moveTo(a.sx,a.sy);ctx.lineTo(b.sx,b.sy);ctx.stroke();}
+  ctx.globalAlpha=1;
+  const order=GX.nodes.filter(on).sort((a,b)=>(near.has(a)?1:0)-(near.has(b)?1:0));
+  let labels=0;const t=performance.now()/1000;
+  for(const n of order){const r=Math.max(4,Math.round(n.r*Math.sqrt(z)));const sp=gSprite(n,r);
+    ctx.globalAlpha=act&&!near.has(n)?.28:1;
+    if(sp)ctx.drawImage(sp,n.sx-sp._s/2,n.sy-sp._s/2,sp._s,sp._s);
+    if(n===act||n.ref===GX.sel){ctx.globalAlpha=1;ctx.lineWidth=3;ctx.strokeStyle=typeColor(n.e.t);ctx.beginPath();ctx.arc(n.sx,n.sy,r+1,0,Math.PI*2);ctx.stroke();
+      if(n.ref===GX.sel){ctx.lineWidth=1.5;ctx.globalAlpha=.6+.4*Math.sin(t*3);ctx.beginPath();ctx.arc(n.sx,n.sy,r+7,0,Math.PI*2);ctx.stroke();}}
+    const showLabel=n===act||(act&&near.has(n))||(!act&&labels<30&&(z>1.25||(n.deg>=6&&z>.7)));
+    if(showLabel){labels++;ctx.globalAlpha=1;ctx.font=`${n===act?700:500} 12.5px "Alegreya Sans",sans-serif`;ctx.textAlign='center';ctx.textBaseline='top';const label=n.e.name.length>26?n.e.name.slice(0,25)+'…':n.e.name;ctx.lineWidth=4;ctx.strokeStyle='rgba(8,6,16,.9)';ctx.strokeText(label,n.sx,n.sy+r+5);ctx.fillStyle=n===act?'#fff':'#ddd5f0';ctx.fillText(label,n.sx,n.sy+r+5);}
+  }
+  ctx.globalAlpha=1;
+}
+gxDraw=function(){if(GX.mode!=='galaxie')return;if(GX.globe)return gxDrawGlobe();gxDrawFlat();};
+gxLoop=function(){
+  cancelAnimationFrame(GX.raf);let last=0;
+  const step=now=>{if(cur!=='reseau'||GX.mode!=='galaxie'||!$('#gxcanvas'))return;
+    if(GX.globe){const active=GX.dragging||GX.turn||Math.abs(GX.vel.x)+Math.abs(GX.vel.y)>0.00005||now-GX.lastI<400;const spinning=GX.spin&&!GX.sel&&!GX.hover;const gap=active?0:spinning?33:(GX.sel?120:1e9);if(now-last>=gap){gxDraw();last=now;}}
+    else{const moving=gxTick();const active=moving||now-GX.lastI<400;const gap=active?0:(GX.sel?120:1e9);if(now-last>=gap){gxDraw();last=now;}}
+    GX.raf=requestAnimationFrame(step);};
+  GX.raf=requestAnimationFrame(step);
+};
 
 /* =========================================================
    DÉMARRAGE
