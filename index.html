@@ -581,6 +581,35 @@ body[data-view="reseau"][data-gx="1"] .gxwrap{flex:1;min-height:0;height:auto!im
 .chk.lsel{outline:2px solid #2e9e62;outline-offset:2px;border-radius:4px}
 .yarn.yl{stroke:#2e9e62}
 .newver{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:80;background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:.6rem 1rem;box-shadow:0 10px 30px rgba(0,0,0,.4);display:flex;gap:.6rem;align-items:center}
+.board.th-liege{background-color:#b4834f;background-image:radial-gradient(rgba(60,30,0,.22) 1px,transparent 1.6px),radial-gradient(rgba(255,235,200,.14) 1px,transparent 1.6px);background-size:7px 7px,11px 11px;background-position:0 0,3px 5px}
+.board.th-ardoise{background-color:#24332b;background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:44px 44px}
+.board.th-parchemin{background-color:#efe2c2;background-image:radial-gradient(circle at 20% 30%,rgba(150,105,45,.14),transparent 40%),radial-gradient(circle at 80% 75%,rgba(150,105,45,.12),transparent 45%),radial-gradient(rgba(120,80,30,.08) 1px,transparent 1.5px);background-size:auto,auto,9px 9px}
+.board.th-photo{background:rgba(0,0,0,var(--dim,0))!important}
+.boardwrap.wphoto{background-size:cover;background-position:center;background-repeat:no-repeat}
+.bc-text .ftext{color:inherit}
+.bc-image{border:0!important;background:#fff!important;padding:8px 8px 6px;box-shadow:0 2px 3px rgba(0,0,0,.25),0 12px 24px rgba(0,0,0,.35);border-radius:2px;display:flex;flex-direction:column}
+.bc-image .bgrip{position:absolute;left:0;right:0;top:0;height:14px;background:transparent;z-index:2}
+.bc-image .imgbox{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#ece7df;overflow:hidden}
+.bc-image .imgbox img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.bc-image .icap{font-family:"Caveat","Segoe Print",cursive;font-size:1.15rem;color:#2a2a2a;text-align:center;min-height:1.4em;outline:none;padding-top:.15rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc-image .icap:empty::before{content:attr(data-ph);color:#999}
+.iresize{opacity:.7!important;right:-6px;bottom:-6px}
+.ngal{border:1px solid var(--line);border-radius:10px;padding:.5rem .7rem;background:var(--surface2)}
+.galgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.5rem;margin-top:.4rem}
+.galitem{margin:0;display:flex;flex-direction:column;gap:.2rem}
+.galimg{padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:var(--surface)}
+.galimg img{width:100%;height:100%;object-fit:cover;display:block}
+.galitem figcaption{display:flex;flex-wrap:wrap;gap:.2rem;align-items:center}
+.galbig img{max-width:100%;max-height:60vh;display:block;margin:0 auto .6rem;border-radius:8px}
+.thgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.6rem}
+.thtile{height:90px;border-radius:12px;border:2px solid var(--line);display:flex;align-items:flex-end;padding:.4rem .6rem;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);background:#16131d}
+.thtile.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.thtile.th-nuit{background:radial-gradient(#3a3249 1.2px,transparent 1.2px) 0 0/14px 14px,#16131d}
+.thtile.th-liege{background:radial-gradient(rgba(60,30,0,.25) 1px,transparent 1.6px) 0 0/7px 7px,#b4834f}
+.thtile.th-ardoise{background:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/20px 20px,#24332b}
+.thtile.th-parchemin{background:#efe2c2;color:#2b1d0e;text-shadow:none}
+.thtile.th-photo{background:linear-gradient(135deg,#6a45cf,#e0a526)}
+.inkdot{display:inline-block;width:.8em;height:.8em;border-radius:50%;border:1px solid var(--line);margin-right:.3em;vertical-align:-.05em}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -4039,7 +4068,7 @@ function noteStyle(c){return `font-family:${fontCss(c.font)};font-size:${c.size|
 function cardHTML(c){
   if(c.type!=='sticky'&&c.type!=='text')return _cardHTMLpinned(c);
   noteMigrate(c);const sel=c.id===BSEL?' selected':'';
-  if(c.type==='text')return `<div class="bcard bc-text${sel}${c.hl?' hl':''}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;min-height:${c.h}px;color:${c.color||'var(--ink)'};${noteStyle(c)}">
+  if(c.type==='text')return `<div class="bcard bc-text${sel}${c.hl?' hl':''}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;min-height:${c.h}px;color:${c.color||'var(--board-ink,var(--ink))'};${noteStyle(c)}">
     <div class="bgrip" data-grip title="Glisse pour déplacer"></div>
     <div class="ftext" contenteditable="true" data-note="${c.id}" data-ph="Écris ton texte…">${cleanRich(c.html)}</div>
     <span class="tresize" data-resize="${c.id}" title="Redimensionner" aria-hidden="true"></span></div>`;
@@ -4296,7 +4325,7 @@ function ghAutoStart(){clearInterval(GHTIMER);const c=GH.cfg();if(!STANDALONE||!
 /* =========================================================
    VERSION 14 : synchro GitHub plus claire + diagnostic
    ========================================================= */
-const APP_VERSION='33';
+const APP_VERSION='34';
 GH.log=function(msg){let L=[];try{L=JSON.parse(localStorage.getItem('bg3codex:ghlog')||'[]');}catch(e){}L.unshift({t:new Date().toISOString(),msg});localStorage.setItem('bg3codex:ghlog',JSON.stringify(L.slice(0,15)));const d=$('#gh-diag');if(d)d.outerHTML=ghDiag();};
 GH.lastCheck=0;
 async function ghCheck(manual){
@@ -5675,7 +5704,7 @@ document.addEventListener('dblclick',e=>{const t=e.target.closest&&e.target.clos
 let LINESEL=null;
 function setLineRef(line,ref){
   line.querySelectorAll('.lref').forEach(x=>x.remove());
-  if(ref){const e=ent(ref);line.dataset.ref=ref;const sp=document.createElement('span');sp.className='lref';sp.contentEditable='false';sp.dataset.ref=ref;sp.textContent=(e?e.icon+' '+e.name:'🔗 fiche');line.append(' ');line.append(sp);}
+  if(ref){const e=ent(ref);line.dataset.ref=ref;const sp=document.createElement('span');sp.className='lref';sp.contentEditable='false';sp.dataset.ref=ref;sp.textContent=(e?e.icon+' '+e.name:'🔗 fiche');const cb0=line.querySelector('.cb');if(cb0){cb0.after(sp);sp.after(document.createTextNode(' '));}else{line.prepend(sp);}}
   else line.removeAttribute('data-ref');
   const ed=line.closest('[data-note]');if(ed){normChecklist(ed);saveNoteEl(ed);}renderStrings();
 }
@@ -5710,7 +5739,7 @@ document.addEventListener('pointerdown',e=>{
   let s='';
   $$('#board .bc-sticky div.chk[data-ref]').forEach(line=>{const tc=byRef.get(line.dataset.ref);if(!tc)return;
     const r=line.getBoundingClientRect();const card=line.closest('.bcard');const cr=card.getBoundingClientRect();
-    const x1=(cr.right-br.left)/z-8,y1=(r.top+r.height/2-br.top)/z;const x2=tc.x+tc.w/2,y2=tc.y+9;
+    const x1=(cr.left-br.left)/z+8,y1=(r.top+r.height/2-br.top)/z;const x2=tc.x+tc.w/2,y2=tc.y+9;
     const d=Math.hypot(x2-x1,y2-y1);const sag=Math.min(110,d*.16);const path=`M${x1},${y1} Q${(x1+x2)/2},${Math.max(y1,y2)+sag} ${x2},${y2}`;
     s+=`<path class="yarn yl" d="${path}"/><g class="bpin" transform="translate(${x1},${y1})"><circle r="5" fill="#2e9e62"/><circle r="5" fill="url(#pinshine)"/></g>`;});
   if(s)svg.insertAdjacentHTML('beforeend',s);
@@ -5816,6 +5845,122 @@ ACT['yt-sync']=()=>playlistSync(false);
 {const r=renderYoutube;renderYoutube=function(){r();const row=$('#v-youtube .split .panel .row');if(row&&!$('[data-act="yt-sync"]',row))row.insertAdjacentHTML('afterend',`<div class="row" style="margin-top:.5rem"><button data-act="yt-sync" title="Ajoute les vidéos de ta playlist qui ne sont pas encore dans le codex">🔄 Synchroniser la playlist</button><span class="small muted">${S.prefs.playlistSync?'Liste du '+esc(hhmm(S.prefs.playlistSync)):''}</span></div>`);};}
 /* une fois par jour, au démarrage, sans rien demander */
 setTimeout(()=>{if(!STANDALONE)return;const last=S.prefs.playlistCheck||0;if(Date.now()-last>20*3600*1000){S.prefs.playlistCheck=Date.now();playlistSync(true);}},6000);
+
+/* =========================================================
+   VERSION 34 : GRILLE, IMAGES, THÈMES DU TABLEAU
+   ========================================================= */
+/* ---------- 1. mise en grille de la sélection ---------- */
+ACT['m-grid']=()=>{
+  const cs=selCards();if(cs.length<2){toast('Sélectionne au moins deux éléments.');return;}
+  cs.sort((a,b)=>a.y-b.y||a.x-b.x);
+  const x0=Math.min(...cs.map(c=>c.x)),y0=Math.min(...cs.map(c=>c.y));
+  const cols=Math.ceil(Math.sqrt(cs.length));const cw=Math.max(...cs.map(c=>c.w)),gap=28;
+  let rowY=y0;
+  for(let r=0;r*cols<cs.length;r++){const row=cs.slice(r*cols,r*cols+cols);row.forEach((c,i)=>{c.x=x0+i*(cw+gap);c.y=rowY;});rowY+=Math.max(...row.map(c=>c.h))+gap;}
+  Store.touch('board');refreshCards(cs.map(c=>c.id));renderCtx();toast('Éléments rangés en grille.');
+};
+ACT['m-samesize']=()=>{const cs=selCards();if(cs.length<2)return;const w=Math.round(cs.reduce((s,c)=>s+c.w,0)/cs.length),h=Math.round(cs.reduce((s,c)=>s+c.h,0)/cs.length);cs.forEach(c=>{c.w=w;c.h=h;});Store.touch('board');refreshCards(cs.map(c=>c.id));};
+{const mb=multiBarHTML;multiBarHTML=function(){return mb().replace('<button class="small danger" data-act="m-del"','<button class="small" data-act="m-grid" title="Ranger la sélection en grille">▦ Grille</button><button class="small" data-act="m-samesize" title="Donner la même taille à tous">⬚ Même taille</button><button class="small danger" data-act="m-del"');};}
+
+/* ---------- 2. cases reliées : pastille et punaise à gauche ---------- */
+function lrefLeft(root){(root||document).querySelectorAll('.bc-sticky div.chk').forEach(line=>{const cb=line.querySelector('.cb'),l=line.querySelector('.lref');if(cb&&l&&cb.nextElementSibling!==l){cb.after(l);l.after(document.createTextNode(' '));}});}
+{const ra=renderAccueil;renderAccueil=function(){ra();lrefLeft($('#board'));renderStrings();};}
+
+/* ---------- 3a. images sur le tableau ---------- */
+const imgURL=id=>{const u=blobUrl(id);return u||'';};
+function imageCardHTML(c){
+  return `<div class="bcard bc-image${c.hl?' hl':''}" data-cid="${c.id}" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px">
+    <div class="bgrip" data-grip title="Glisse pour déplacer"></div>
+    <div class="imgbox">${c.img&&imgURL(c.img)?`<img src="${esc(imgURL(c.img))}" alt="${esc(c.cap||'')}" draggable="false">`:'<span class="muted small">Image introuvable sur cet appareil</span>'}</div>
+    <div class="icap" contenteditable="true" data-icap="${c.id}" data-ph="Légende…">${esc(c.cap||'')}</div>
+    <span class="tresize iresize" data-resize="${c.id}" aria-hidden="true"></span></div>`;
+}
+{const ch=cardHTML;cardHTML=function(c){return c.type==='image'?imageCardHTML(c):ch(c);};}
+async function addBoardImages(files,at){
+  if(!Store.assets){toast('L’ajout d’images fonctionne sur ta page GitHub ou dans la page publiée.');return;}
+  let k=0;
+  for(const f of files){if(!/^image\//.test(f.type))continue;
+    try{const r=await Store.assets.upload(f);const dims=await new Promise(res=>{const im=new Image();im.onload=()=>res([im.naturalWidth,im.naturalHeight]);im.onerror=()=>res([400,300]);im.src=imgURL(r.id)||URL.createObjectURL(f);});
+      const w=Math.min(380,dims[0]),h=Math.round(w*dims[1]/dims[0])+34;let x,y;if(at){x=at[0]+k*24;y=at[1]+k*24;}else[x,y]=freeSpot(w,h);
+      S.board.cards.push({id:uid(),type:'image',img:r.id,cap:'',x:Math.round(x),y:Math.round(y),w,h});k++;}
+    catch(e){toast('Une image n’a pas pu être ajoutée.');}}
+  if(k){Store.touch('board');renderAccueil();toast(k>1?`${k} images ajoutées.`:'Image ajoutée.');}
+}
+document.addEventListener('change',e=>{if(e.target.id==='b-imgfile'){addBoardImages([...e.target.files]);e.target.value='';}});
+document.addEventListener('paste',e=>{
+  if(cur!=='accueil'||dlg().open)return;const t=e.target;if(t.isContentEditable||/INPUT|TEXTAREA/.test(t.tagName))return;
+  const files=[...(e.clipboardData||{}).items||[]].filter(i=>i.type&&i.type.startsWith('image/')).map(i=>i.getAsFile());if(!files.length)return;
+  e.preventDefault();const w=$('#boardwrap');const z=S.board.z||1;addBoardImages(files,w?[(w.scrollLeft+60)/z,(w.scrollTop+60)/z]:null);
+});
+document.addEventListener('dragover',e=>{if(cur==='accueil'&&e.target.closest&&e.target.closest('#boardwrap')&&[...(e.dataTransfer||{}).types||[]].includes('Files'))e.preventDefault();});
+document.addEventListener('drop',e=>{const w=e.target.closest&&e.target.closest('#boardwrap');if(cur!=='accueil'||!w)return;const files=[...(e.dataTransfer||{}).files||[]].filter(f=>/^image\//.test(f.type));if(!files.length)return;e.preventDefault();
+  const b=$('#board').getBoundingClientRect();const z=S.board.z||1;addBoardImages(files,[(e.clientX-b.left)/z,(e.clientY-b.top)/z]);});
+let ICT=null;document.addEventListener('input',e=>{const el=e.target.closest&&e.target.closest('[data-icap]');if(!el)return;const c=S.board.cards.find(x=>x.id===el.dataset.icap);if(!c)return;clearTimeout(ICT);ICT=setTimeout(()=>{c.cap=(el.innerText??el.textContent).trim();Store.touch('board');},300);});
+document.addEventListener('keydown',e=>{if(e.target.matches&&e.target.matches('[data-icap]')&&e.key==='Enter'){e.preventDefault();e.target.blur();}});
+
+/* ---------- 3b. images dans les notes du carnet ---------- */
+function galleryHTML(n){
+  const G=n.gallery||[];
+  return `<div class="ngal" data-note-gal="${n.id}"><div class="row" style="justify-content:space-between"><span class="small muted">Images de la note</span>
+    ${Store.assets?`<label class="btn small">🖼 Ajouter<input type="file" accept="image/*" multiple data-galfile="${n.id}" hidden></label>`:''}</div>
+    ${G.length?`<div class="galgrid">${G.map((g,i)=>{const e=g.ref&&ent(g.ref);return `<figure class="galitem"><button class="galimg" data-act="gal-view" data-n="${n.id}" data-i="${i}" title="Agrandir">${imgURL(g.a)?`<img src="${esc(imgURL(g.a))}" alt="${esc(g.cap||'')}" loading="lazy">`:'<span class="small muted">?</span>'}</button>
+      <figcaption>${g.cap?`<span class="small">${esc(g.cap)}</span>`:''}${e?`<span class="lchip" style="--gc:var(--gc-${e.t})"><button data-act="ref-open" data-ref="${esc(e.ref)}">${eIcon(e)} ${esc(e.name)}</button></span>`:''}</figcaption></figure>`;}).join('')}</div>`:`<p class="small muted" style="margin:.2rem 0 0">${Store.assets?'Ajoute une capture, ou colle-la ici avec Ctrl+V quand le curseur est dans la note.':'Images disponibles sur ta page GitHub.'}</p>`}
+  </div>`;
+}
+async function addNoteImages(id,files){
+  const n=S.notes.find(x=>x.id===id);if(!n||!Store.assets)return;n.gallery=n.gallery||[];let k=0;
+  for(const f of files){if(!/^image\//.test(f.type))continue;try{const r=await Store.assets.upload(f);n.gallery.push({a:r.id,cap:'',ref:null});k++;}catch(e){}}
+  if(k){n.updated=Date.now();Store.touch('notes');injectGallery();toast(k>1?`${k} images ajoutées à la note.`:'Image ajoutée à la note.');}
+}
+function injectGallery(){if(cur!=='carnet')return;const n=S.notes.find(x=>x.id===NV.sel);const host=$('#noteed');if(!n||!host)return;const old=$('.ngal',host);const html=galleryHTML(n);if(old)old.outerHTML=html;else{const anchor=$('.mbox',host)||$('.links',host);if(anchor)anchor.insertAdjacentHTML('beforebegin',html);}}
+{const r=renderNoteEditor;renderNoteEditor=function(){r();injectGallery();};}
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.galfile){addNoteImages(e.target.dataset.galfile,[...e.target.files]);e.target.value='';}});
+document.addEventListener('paste',e=>{
+  if(cur!=='carnet')return;const ed=e.target.closest&&e.target.closest('#noteed');if(!ed||!NV.sel)return;
+  const files=[...(e.clipboardData||{}).items||[]].filter(i=>i.type&&i.type.startsWith('image/')).map(i=>i.getAsFile());if(!files.length)return;
+  e.preventDefault();e.stopImmediatePropagation();addNoteImages(NV.sel,files);
+},true);
+ACT['gal-view']=t=>{const n=S.notes.find(x=>x.id===t.dataset.n);const i=+t.dataset.i;const g=n&&n.gallery&&n.gallery[i];if(!g)return;const e=g.ref&&ent(g.ref);
+  openDlg('Image de la note',`<div class="galbig">${imgURL(g.a)?`<img src="${esc(imgURL(g.a))}" alt="">`:''}</div>
+    <label class="field">Légende<input id="gal-cap" value="${esc(g.cap||'')}"></label>
+    <div class="row" style="margin-top:.6rem">${e?`<span class="lchip" style="--gc:var(--gc-${e.t})"><button data-act="ref-open" data-ref="${esc(e.ref)}">${eIcon(e)} ${esc(e.name)}</button></span>`:''}
+      <button class="small" data-act="gal-link" data-n="${n.id}" data-i="${i}">🔗 ${e?'Changer le lien':'Relier à une fiche'}</button>
+      ${e?`<button class="small" data-act="gal-unlink" data-n="${n.id}" data-i="${i}">✕ Délier</button>`:''}
+      <span style="flex:1"></span><button class="small" data-act="gal-pin" data-n="${n.id}" data-i="${i}">📌 Mettre sur le tableau</button><button class="small danger" data-act="gal-del" data-n="${n.id}" data-i="${i}">Supprimer</button></div>`,{wide:true});
+  $('#gal-cap').addEventListener('input',ev=>{g.cap=ev.target.value;n.updated=Date.now();Store.touch('notes');});
+  $('#gal-cap').addEventListener('change',()=>injectGallery());
+};
+ACT['gal-link']=t=>{const n=S.notes.find(x=>x.id===t.dataset.n);const g=n.gallery[+t.dataset.i];openPicker(ref=>{g.ref=ref;addLink('note:'+n.id,ref);n.updated=Date.now();Store.touch('notes');closeDlg();injectGallery();refreshLinks();toast('Image reliée à la fiche (et la note aussi).');},{title:'Relier cette image à…'});};
+ACT['gal-unlink']=t=>{const n=S.notes.find(x=>x.id===t.dataset.n);const g=n.gallery[+t.dataset.i];g.ref=null;Store.touch('notes');closeDlg();injectGallery();};
+ACT['gal-del']=t=>{if(!confirm('Retirer cette image de la note ?'))return;const n=S.notes.find(x=>x.id===t.dataset.n);n.gallery.splice(+t.dataset.i,1);Store.touch('notes');closeDlg();injectGallery();};
+ACT['gal-pin']=t=>{const n=S.notes.find(x=>x.id===t.dataset.n);const g=n.gallery[+t.dataset.i];const [x,y]=freeSpot(300,260);S.board.cards.push({id:uid(),type:'image',img:g.a,cap:g.cap||'',x,y,w:300,h:260});Store.touch('board');closeDlg();toast('Image épinglée sur le tableau (onglet en cours).');};
+/* les images sont aussi sauvegardées sur GitHub et dans les exports */
+{const ub=usedBlobIds;usedBlobIds=function(){const s=new Set(ub());const boards=[S.board,...Object.values(S.sheets.store||{})];for(const b of boards)for(const c of (b.cards||[]))if(c.type==='image'&&c.img)s.add(c.img);for(const b of boards)if(b.theme&&b.theme.photo)s.add(b.theme.photo);for(const n of S.notes)for(const g of (n.gallery||[]))if(g.a)s.add(g.a);return [...s];};}
+
+/* ---------- 4. thèmes du tableau ---------- */
+const BTHEMES=[['nuit','Nuit étoilée','#ece6f5'],['liege','Liège','#1f150b'],['ardoise','Ardoise','#f2efe2'],['parchemin','Parchemin','#2b1d0e'],['photo','Ma photo','#ffffff']];
+const INKS2=[['auto','Automatique'],['#ffffff','Blanc'],['#111111','Noir'],['#f5d76e','Doré'],['#a8e6c1','Vert pâle'],['#ffb7c5','Rose']];
+function applyBoardTheme(){
+  const b=$('#board'),w=$('#boardwrap');if(!b||!w)return;const th=S.board.theme||{};const k=th.bg||'nuit';
+  BTHEMES.forEach(([t])=>b.classList.toggle('th-'+t,t===k));
+  const ink=th.ink&&th.ink!=='auto'?th.ink:(BTHEMES.find(x=>x[0]===k)||BTHEMES[0])[2];b.style.setProperty('--board-ink',ink);
+  if(k==='photo'&&th.photo&&imgURL(th.photo)){w.style.backgroundImage=`url("${imgURL(th.photo)}")`;w.classList.add('wphoto');b.style.setProperty('--dim',th.dim?'.4':'0');}
+  else{w.style.backgroundImage='';w.classList.remove('wphoto');}
+}
+{const ra=renderAccueil;renderAccueil=function(){ra();applyBoardTheme();
+  const bar=$('.boardbar');if(bar&&!$('#b-theme')){const ps=bar.querySelector('[data-act="board-sticky"]');if(ps)ps.insertAdjacentHTML('afterend',`<label class="btn" title="Ajouter une image (ou colle-la avec Ctrl+V, ou glisse-la sur le tableau)">🖼 Image<input type="file" accept="image/*" multiple id="b-imgfile" hidden></label><button id="b-theme" data-act="b-theme" title="Fond et couleur du texte">🎨 Fond</button>`);}};}
+ACT['b-theme']=()=>{const th=S.board.theme||{};
+  openDlg('Fond du tableau',`<p class="small muted" style="margin-top:0">Pour l’onglet en cours (« ${esc((S.sheets.list.find(t=>t.id===S.sheets.cur)||{}).name||'')} »).</p>
+    <div class="thgrid">${BTHEMES.map(([k,n])=>`<button class="thtile th-${k}${(th.bg||'nuit')===k?' on':''}" data-act="b-theme-set" data-k="${k}"${k==='photo'&&!th.photo?' data-need="1"':''}><span>${n}</span></button>`).join('')}</div>
+    <div class="row" style="margin-top:.7rem">${Store.assets?`<label class="btn">📷 ${th.photo?'Changer':'Choisir'} ma photo<input type="file" accept="image/*" id="b-photo" hidden></label>`:''}<label class="checks"><label><input type="checkbox" id="b-dim"${th.dim?' checked':''}>Assombrir la photo</label></label></div>
+    <h3 style="margin-top:1rem">Couleur du texte libre</h3>
+    <div class="row">${INKS2.map(([v,n])=>`<button class="small${(th.ink||'auto')===v?' primary':''}" data-act="b-ink" data-v="${v}">${v!=='auto'?`<span class="inkdot" style="background:${v}"></span>`:''}${n}</button>`).join('')}</div>
+    <p class="small muted">« Automatique » choisit un texte clair sur les fonds sombres et foncé sur les fonds clairs. Les textes auxquels tu as déjà donné une couleur la gardent.</p>`,{wide:true});
+  const ph=$('#b-photo');if(ph)ph.addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const r=await Store.assets.upload(f);S.board.theme={...(S.board.theme||{}),bg:'photo',photo:r.id};Store.touch('board');applyBoardTheme();ACT['b-theme']();}catch(err){toast('La photo n’a pas pu être ajoutée.');}});
+  $('#b-dim').addEventListener('change',e=>{S.board.theme={...(S.board.theme||{}),dim:e.target.checked};Store.touch('board');applyBoardTheme();});
+};
+ACT['b-theme-set']=t=>{if(t.dataset.need){toast('Choisis d’abord une photo avec le bouton 📷.');return;}S.board.theme={...(S.board.theme||{}),bg:t.dataset.k};Store.touch('board');applyBoardTheme();ACT['b-theme']();};
+ACT['b-ink']=t=>{S.board.theme={...(S.board.theme||{}),ink:t.dataset.v};Store.touch('board');applyBoardTheme();ACT['b-theme']();};
 
 /* =========================================================
    DÉMARRAGE
